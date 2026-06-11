@@ -126,23 +126,26 @@
 
                 <!-- Right Actions: Mix Builder & B2B -->
                 <div class="flex items-center shrink-0 gap-3 md:gap-4">
-                    <!-- Mix Builder Dropdown -->
-                    <div class="relative" id="mix-builder-dropdown-container">
-                        <button id="btn-toggle-mix" class="flex items-center gap-2 bg-white text-black rounded-full px-4 py-2.5 hover:bg-gray-200 transition-all text-[10px] font-display font-bold tracking-[0.2em] shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                            СОБЕРИ ВКУС
-                        </button>
-                        <!-- Dropdown Panel -->
-                        <div id="mix-builder" class="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-64 bg-[#111113]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 z-50 opacity-0 pointer-events-none transition-all transform scale-95 origin-top hidden-on-rent shadow-2xl">
-                            <div class="flex flex-wrap gap-2 mb-4" id="ingredients-container">
-                                <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="ягоды">Ягоды</button>
-                                <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="фрукты">Фрукты</button>
-                                <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="цитрусы">Цитрусы</button>
-                                <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="свежесть">Свежесть</button>
-                                <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="десерты">Десерты</button>
-                            </div>
-                            <div id="custom-mix-prompt" class="hidden">
-                                <p class="text-white/40 text-[10px] font-alt mb-3 leading-tight">Не нашли идеальное сочетание? Мы соберем его для вас.</p>
-                                <button id="btn-custom-mix" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-display w-full hover:bg-gray-200 transition-colors">КАСТОМНЫЙ МИКС</button>
+                    <!-- Desktop Mix Builder Container -->
+                    <div id="desktop-mix-container" class="hidden md:block">
+                        <!-- Mix Builder Dropdown -->
+                        <div class="relative" id="mix-builder-dropdown-container">
+                            <button id="btn-toggle-mix" class="flex items-center gap-2 bg-white text-black rounded-full px-4 py-2.5 hover:bg-gray-200 transition-all text-[10px] font-display font-bold tracking-[0.2em] shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                                СОБЕРИ ВКУС
+                            </button>
+                            <!-- Dropdown Panel -->
+                            <div id="mix-builder" class="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-64 bg-[#111113]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 z-50 opacity-0 pointer-events-none transition-all transform scale-95 origin-top hidden-on-rent shadow-2xl">
+                                <div class="flex flex-wrap gap-2 mb-4" id="ingredients-container">
+                                    <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="ягоды">Ягоды</button>
+                                    <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="фрукты">Фрукты</button>
+                                    <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="цитрусы">Цитрусы</button>
+                                    <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="свежесть">Свежесть</button>
+                                    <button class="ingredient-btn bg-black/40 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-display tracking-[0.1em]" data-tag="десерты">Десерты</button>
+                                </div>
+                                <div id="custom-mix-prompt" class="hidden">
+                                    <p class="text-white/40 text-[10px] font-alt mb-3 leading-tight">Не нашли идеальное сочетание? Мы соберем его для вас.</p>
+                                    <button id="btn-custom-mix" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-display w-full hover:bg-gray-200 transition-colors">КАСТОМНЫЙ МИКС</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -190,6 +193,9 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <!-- Mobile Mix Builder Container -->
+                    <div id="mobile-mix-container" class="block md:hidden"></div>
 
                 </div>
             </div>

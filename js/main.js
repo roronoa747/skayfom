@@ -897,4 +897,32 @@ function initHeaderScroll() {
 // Ensure it initializes
 document.addEventListener('DOMContentLoaded', () => {
     initHeaderScroll();
+    initResponsiveMixBuilder();
 });
+
+// Responsive Mix Builder Mover
+function initResponsiveMixBuilder() {
+    const dropdown = document.getElementById('mix-builder-dropdown-container');
+    const desktopContainer = document.getElementById('desktop-mix-container');
+    const mobileContainer = document.getElementById('mobile-mix-container');
+    
+    if (!dropdown || !desktopContainer || !mobileContainer) return;
+    
+    function moveMixBuilder() {
+        if (window.innerWidth < 768) {
+            if (mobileContainer.children.length === 0) {
+                mobileContainer.appendChild(dropdown);
+            }
+        } else {
+            if (desktopContainer.children.length === 0) {
+                desktopContainer.appendChild(dropdown);
+            }
+        }
+    }
+    
+    // Initial check
+    moveMixBuilder();
+    
+    // Check on resize
+    window.addEventListener('resize', moveMixBuilder, { passive: true });
+}
