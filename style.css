@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Unbounded:wght@800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    background-color: #070708;
+    color: #ffffff;
+}
+
+/* Typography */
+.font-display {
+    font-family: 'Syncopate', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+}
+
+.font-alt {
+    font-family: 'Unbounded', sans-serif;
+}
+
+/* Header Logo Glow */
+.logo-bloom {
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.8)) drop-shadow(0 0 20px rgba(56,189,248,0.5));
+}
+
+/* Premium Panel Base */
+.premium-panel {
+    background: rgba(17, 17, 19, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card Hover Effects */
+.premium-panel:hover {
+    background: rgba(25, 25, 28, 0.8);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.glass-card {
+    background: rgba(17, 17, 19, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card[data-brand*="hell"]:hover {
+    box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.15), 0 0 20px rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    transform: translateY(-4px);
+}
+
+.glass-card[data-brand*="death punch"]:hover {
+    box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.15), 0 0 20px rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    transform: translateY(-4px);
+}
+
+.glass-card[data-brand*="aureus"]:hover {
+    box-shadow: inset 0 0 40px rgba(250, 204, 21, 0.15), 0 0 20px rgba(250, 204, 21, 0.2);
+    border-color: rgba(250, 204, 21, 0.4);
+    transform: translateY(-4px);
+}
+
+.glass-card[data-brand*="sapphire"]:hover {
+    box-shadow: inset 0 0 40px rgba(168, 85, 247, 0.15), 0 0 20px rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.4);
+    transform: translateY(-4px);
+}
+
+/* Default card hover */
+.glass-card:hover {
+    box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.05), 0 0 20px rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+}
+
+/* Button & Tab Hovers */
+.tab-btn, .vibe-btn, .ingredient-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.tab-btn:hover, .vibe-btn:hover, .ingredient-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.tab-btn.active, .vibe-btn.active, .ingredient-btn.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.glass-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+.glass-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    color: #000;
+}
+
+/* Scrollbar */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Smoke Loader */
+.smoke-container { position: relative; width: 100px; height: 100px; }
+.smoke {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%; filter: blur(10px); opacity: 0;
+    animation: rise 2s infinite ease-in;
+}
+.smoke:nth-child(2) { animation-delay: 0.5s; left: 40%; }
+.smoke:nth-child(3) { animation-delay: 1s; left: 60%; }
+
+@keyframes rise {
+    0% { bottom: 0; opacity: 0; transform: translateX(-50%) scale(1); }
+    50% { opacity: 0.8; }
+    100% { bottom: 100px; opacity: 0; transform: translateX(-50%) scale(3); }
+}
+
+/* 2GIS Map Dark Filter */
+.map-dark-filter iframe {
+    filter: invert(90%) hue-rotate(180deg) brightness(80%) contrast(120%);
+}
+
+/* Custom User Smoke */
+@keyframes smokeDriftOne {
+  0% { transform: translate(0px, 0px) scale(1); opacity: 0.15; }
+  33% { transform: translate(40px, -30px) scale(1.2); opacity: 0.25; }
+  66% { transform: translate(-20px, 20px) scale(0.9); opacity: 0.1; }
+  100% { transform: translate(0px, 0px) scale(1); opacity: 0.15; }
+}
+
+@keyframes smokeDriftTwo {
+  0% { transform: translate(0px, 0px) scale(1.1); opacity: 0.2; }
+  50% { transform: translate(-50px, 40px) scale(0.85); opacity: 0.1; }
+  100% { transform: translate(0px, 0px) scale(1.1); opacity: 0.2; }
+}
+
+.animate-smoke-1 {
+  animation: smokeDriftOne 25s ease-in-out infinite;
+}
+
+.animate-smoke-2 {
+  animation: smokeDriftTwo 35s ease-in-out infinite;
+}
+
+/* Marquee Animations */
+@keyframes marqueeLeft {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeRight {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+}
+
+.animate-marquee-left {
+    animation: marqueeLeft 80s linear infinite;
+    will-change: transform;
+}
+
+.animate-marquee-right {
+    animation: marqueeRight 80s linear infinite;
+    will-change: transform;
+}
+
+.animate-marquee-left:hover, .animate-marquee-right:hover {
+    animation-play-state: paused;
+}
+
+.mask-edges {
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}

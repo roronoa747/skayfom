@@ -1,0 +1,79 @@
+$csvPath = "c:\Users\ilyas\Documents\skayfom\catalog_template.csv"
+$downloads = "C:\Users\ilyas\Downloads"
+$chabaccoDir = Get-ChildItem -Path $downloads -Recurse -Directory -Filter "01_Chabacco" | Select-Object -First 1
+if ($null -eq $chabaccoDir) {
+    Write-Output "Could not find 01_Chabacco folder"
+    exit
+}
+$sourceDir = $chabaccoDir.FullName
+Write-Output "Found source dir: $sourceDir"
+
+$targetDir = "c:\Users\ilyas\Documents\skayfom\public\images\chabacco"
+
+if (!(Test-Path $targetDir)) {
+    New-Item -ItemType Directory -Path $targetDir | Out-Null
+}
+
+$images = Get-ChildItem -Path $sourceDir -Recurse -Include *.jpg,*.png
+
+$imageMap = @{}
+foreach ($img in $images) {
+    $baseName = $img.BaseName.ToLower()
+    $baseName = $baseName -replace "chabacco", ""
+    $baseName = $baseName -replace "[^a-zа-яё0-9]", ""
+    if ($baseName.Length -gt 0) {
+        $imageMap[$baseName] = $img.FullName
+    }
+}
+
+$csvContent = Get-Content $csvPath -Encoding UTF8
+$header = $csvContent[0] -split ","
+
+$brandIdx = [array]::IndexOf($header, "brand")
+$flavorIdx = [array]::IndexOf($header, "flavor")
+$mediaUrlIdx = [array]::IndexOf($header, "media_url")
+
+$matchCount = 0
+
+for ($i = 1; $i -lt $csvContent.Length; $i++) {
+    $line = $csvContent[$i].Trim()
+    if ($line.Length -eq 0) { continue }
+    
+    $cols = $line -split ","
+    
+    if ($cols[$brandIdx].Trim() -ieq "chabacco") {
+        $flavor = $cols[$flavorIdx].Trim()
+        $normFlavor = $flavor.ToLower() -replace "[^a-zа-яё0-9]", ""
+        
+        $matchedImg = $null
+        
+        if ($imageMap.ContainsKey($normFlavor)) {
+            $matchedImg = $imageMap[$normFlavor]
+        } else {
+            foreach ($key in $imageMap.Keys) {
+                if ($key.Length -ge 3 -and $normFlavor.Length -ge 3) {
+                    if ($key.Contains($normFlavor) -or $normFlavor.Contains($key)) {
+                        $matchedImg = $imageMap[$key]
+                        break
+                    }
+                }
+            }
+        }
+        
+        if ($matchedImg -ne $null) {
+            $ext = [System.IO.Path]::GetExtension($matchedImg)
+            $safeFlavor = $flavor -replace "[^a-zA-Zа-яА-Я0-9]", "_"
+            $targetFilename = "$safeFlavor$ext"
+            $targetPath = Join-Path $targetDir $targetFilename
+            
+            Copy-Item -Path $matchedImg -Destination $targetPath -Force
+            $cols[$mediaUrlIdx] = "images/chabacco/$targetFilename"
+            $matchCount++
+        }
+    }
+    
+    $csvContent[$i] = $cols -join ","
+}
+
+$csvContent | Set-Content $csvPath -Encoding UTF8
+Write-Output "Matched and copied $matchCount images for Chabacco."
