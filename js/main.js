@@ -327,9 +327,9 @@ function renderBrandFilters() {
     });
     
     DOM.brandFilters.innerHTML = `
-        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-transparent pr-2">БРЕНД:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="brand-marquee-wrapper" style="scroll-behavior: auto;">
-            <div class="flex gap-3 w-max js-marquee-inner pr-3">
+        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-neutral-950 pr-2">БРЕНД:</span>
+        <div class="overflow-hidden w-full mask-edges relative flex cursor-pointer">
+            <div class="flex gap-2 w-max animate-marquee-left hover:[animation-play-state:paused] pl-2 pr-2">
                 ${innerHtml}
                 ${innerHtml}
                 ${innerHtml}
@@ -337,8 +337,6 @@ function renderBrandFilters() {
             </div>
         </div>
     `;
-    
-    initJSMarquee('brand-marquee-wrapper', 0.15);
     
     DOM.brandFilters.querySelectorAll('.brand-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -410,8 +408,8 @@ function renderVibeFilters() {
     
     DOM.vibeFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-neutral-950 pr-2">ВАЙБ:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="vibe-marquee-wrapper" style="scroll-behavior: auto;">
-            <div class="flex gap-3 w-max js-marquee-inner pl-3 pr-3">
+        <div class="overflow-hidden w-full mask-edges relative flex cursor-pointer">
+            <div class="flex gap-3 w-max animate-marquee-right hover:[animation-play-state:paused] pl-3 pr-3">
                 ${innerHtml}
                 ${innerHtml}
                 ${innerHtml}
@@ -419,8 +417,6 @@ function renderVibeFilters() {
             </div>
         </div>
     `;
-
-    initJSMarquee('vibe-marquee-wrapper', -0.15);
     
     DOM.vibeFilters.querySelectorAll('.vibe-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -880,7 +876,7 @@ function initHeaderScroll() {
         // iOS bounce protection at the top
         if (currentScroll <= 0) {
             if (isHidden) {
-                header.classList.remove('-translate-y-full');
+                header.classList.remove('-translate-y-4', 'opacity-0', 'pointer-events-none');
                 isHidden = false;
             }
             lastScroll = 0;
@@ -894,15 +890,15 @@ function initHeaderScroll() {
             // Threshold of 15px to prevent micro-jitter
             if (Math.abs(scrollDiff) > 15) {
                 if (scrollDiff > 0 && currentScroll > 100) {
-                    // Scrolling down -> hide
+                    // Scrolling down -> hide softly
                     if (!isHidden) {
-                        header.classList.add('-translate-y-full');
+                        header.classList.add('-translate-y-4', 'opacity-0', 'pointer-events-none');
                         isHidden = true;
                     }
                 } else if (scrollDiff < 0) {
                     // Scrolling up -> show
                     if (isHidden) {
-                        header.classList.remove('-translate-y-full');
+                        header.classList.remove('-translate-y-4', 'opacity-0', 'pointer-events-none');
                         isHidden = false;
                     }
                 }
@@ -912,7 +908,7 @@ function initHeaderScroll() {
         } else {
             // Always show on desktop
             if (isHidden) {
-                header.classList.remove('-translate-y-full');
+                header.classList.remove('-translate-y-4', 'opacity-0', 'pointer-events-none');
                 isHidden = false;
             }
         }
