@@ -872,25 +872,50 @@ function initHeaderScroll() {
     if (!header) return;
     
     let lastScroll = window.scrollY;
+    let isHidden = false;
     
     window.addEventListener('scroll', () => {
         const currentScroll = window.scrollY;
         
+        // iOS bounce protection at the top
+        if (currentScroll <= 0) {
+            if (isHidden) {
+                header.classList.remove('-translate-y-full');
+                isHidden = false;
+            }
+            lastScroll = 0;
+            return;
+        }
+        
         // Apply logic on mobile and tablets
         if (window.innerWidth < 1024) {
-            if (currentScroll > lastScroll && currentScroll > 100) {
-                // Scrolling down -> hide
-                header.classList.add('-translate-y-full');
-            } else {
-                // Scrolling up -> show
-                header.classList.remove('-translate-y-full');
+            const scrollDiff = currentScroll - lastScroll;
+            
+            // Threshold of 15px to prevent micro-jitter
+            if (Math.abs(scrollDiff) > 15) {
+                if (scrollDiff > 0 && currentScroll > 100) {
+                    // Scrolling down -> hide
+                    if (!isHidden) {
+                        header.classList.add('-translate-y-full');
+                        isHidden = true;
+                    }
+                } else if (scrollDiff < 0) {
+                    // Scrolling up -> show
+                    if (isHidden) {
+                        header.classList.remove('-translate-y-full');
+                        isHidden = false;
+                    }
+                }
+                // Only update lastScroll when a significant movement happens
+                lastScroll = currentScroll;
             }
         } else {
             // Always show on desktop
-            header.classList.remove('-translate-y-full');
+            if (isHidden) {
+                header.classList.remove('-translate-y-full');
+                isHidden = false;
+            }
         }
-        
-        lastScroll = currentScroll <= 0 ? 0 : currentScroll;
     }, { passive: true });
 }
 
