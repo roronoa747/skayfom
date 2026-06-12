@@ -32,6 +32,12 @@ function initJSMarquee(containerId, speed) {
     const inner = container.querySelector('.js-marquee-inner');
     if (!inner) return;
 
+    // Disable JS marquee on mobile to prevent extreme layout thrashing and lag
+    if (window.innerWidth < 768) {
+        // We still let it be a native scrollable container
+        return;
+    }
+
     let isDown = false;
     let startX;
     let scrollLeft;
@@ -410,15 +416,16 @@ function renderBrandFilters() {
         `;
     });
     
-    // 50 copies of 30 brands is 1500 nodes, which crashes mobile! Use 3 copies.
-    let repeatedHtml = innerHtml.repeat(3);
+    let isMobile = window.innerWidth < 768;
+    // Limit copies to prevent DOM explosion, don't repeat on mobile
+    let repeatedHtml = isMobile ? innerHtml : innerHtml.repeat(3);
     
     DOM.brandFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="brand-marquee-container">
-            <div class="flex gap-2 w-max js-marquee-inner px-2">
+        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex ${isMobile ? 'snap-x' : 'cursor-grab'}" id="brand-marquee-container">
+            <div class="flex gap-2 w-max js-marquee-inner px-2 ${isMobile ? 'pr-8' : ''}">
                 <div class="flex gap-2">${repeatedHtml}</div>
-                <div class="flex gap-2">${repeatedHtml}</div>
+                ${isMobile ? '' : `<div class="flex gap-2">${repeatedHtml}</div>`}
             </div>
         </div>
     `;
@@ -507,15 +514,16 @@ function renderVibeFilters() {
         `;
     });
     
-    // Limit copies to prevent DOM explosion
-    let repeatedHtml = innerHtml.repeat(4);
+    let isMobile = window.innerWidth < 768;
+    // Limit copies to prevent DOM explosion, don't repeat on mobile
+    let repeatedHtml = isMobile ? innerHtml : innerHtml.repeat(4);
     
     DOM.vibeFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="vibe-marquee-container">
-            <div class="flex gap-3 w-max js-marquee-inner px-3">
+        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex ${isMobile ? 'snap-x' : 'cursor-grab'}" id="vibe-marquee-container">
+            <div class="flex gap-3 w-max js-marquee-inner px-3 ${isMobile ? 'pr-8' : ''}">
                 <div class="flex gap-3">${repeatedHtml}</div>
-                <div class="flex gap-3">${repeatedHtml}</div>
+                ${isMobile ? '' : `<div class="flex gap-3">${repeatedHtml}</div>`}
             </div>
         </div>
     `;
