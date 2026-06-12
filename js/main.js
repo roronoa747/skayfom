@@ -1028,13 +1028,23 @@ function showToast(item) {
     
     DOM.toastContainer.appendChild(toast);
     
+    // Dismiss on click
+    toast.addEventListener('click', () => {
+        toast.classList.add('translate-y-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 500);
+    });
+    
     requestAnimationFrame(() => {
         toast.classList.remove('translate-y-full', 'opacity-0');
     });
     
     setTimeout(() => {
-        toast.classList.add('translate-y-full', 'opacity-0');
-        setTimeout(() => toast.remove(), 500);
+        if (toast.parentNode) {
+            toast.classList.add('translate-y-full', 'opacity-0');
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 500);
+        }
     }, 3000);
 }
 
