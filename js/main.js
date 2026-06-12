@@ -587,7 +587,21 @@ function renderCatalog() {
         // Filter by Ingredients (Mix Builder)
         if (activeIngredients.size > 0) {
              const itemVibes = (item.vibes || '').toLowerCase().split(',').map(v => v.trim());
-             const hasIngredient = Array.from(activeIngredients).every(ing => itemVibes.includes(ing));
+             const itemDesc = (item.description || '').toLowerCase();
+             const itemFlavor = (item.flavor || '').toLowerCase();
+
+             const hasIngredient = Array.from(activeIngredients).every(ing => {
+                 if (ing === 'цитрусы') {
+                     return itemVibes.includes('кислый') || 
+                            itemDesc.includes('цитрус') || itemFlavor.includes('цитрус') ||
+                            itemDesc.includes('лимон') || itemFlavor.includes('лимон') ||
+                            itemDesc.includes('апельсин') || itemFlavor.includes('апельсин') ||
+                            itemDesc.includes('грейпфрут') || itemFlavor.includes('грейпфрут') ||
+                            itemDesc.includes('лайм') || itemFlavor.includes('лайм') ||
+                            itemDesc.includes('мандарин') || itemFlavor.includes('мандарин');
+                 }
+                 return itemVibes.includes(ing);
+             });
              if (!hasIngredient) return false;
         }
 
