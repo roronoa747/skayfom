@@ -410,6 +410,7 @@ const VIBE_COLORS = {
     'выбор_команды': 'bg-sky-400 drop-shadow-[0_0_5px_rgba(56,189,248,0.8)]',
     'свежесть': 'bg-cyan-300 drop-shadow-[0_0_5px_rgba(103,232,249,0.8)]',
     'ягоды': 'bg-purple-500 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]',
+    'лесные ягоды': 'bg-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.8)]',
     'десерты': 'bg-amber-700 drop-shadow-[0_0_5px_rgba(180,83,9,0.8)]',
     'фрукты': 'bg-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]',
     'напитки': 'bg-blue-500 drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]',
@@ -417,7 +418,9 @@ const VIBE_COLORS = {
     'необычный': 'bg-fuchsia-500 drop-shadow-[0_0_5px_rgba(217,70,239,0.8)]',
     'цветы': 'bg-rose-400 drop-shadow-[0_0_5px_rgba(251,113,133,0.8)]',
     'аренда': 'bg-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]',
-    'премиум': 'bg-yellow-600 drop-shadow-[0_0_5px_rgba(202,138,4,0.8)]'
+    'премиум': 'bg-yellow-600 drop-shadow-[0_0_5px_rgba(202,138,4,0.8)]',
+    'чайный': 'bg-amber-600 drop-shadow-[0_0_5px_rgba(217,119,6,0.8)]',
+    'холод': 'bg-blue-300 drop-shadow-[0_0_5px_rgba(147,197,253,0.8)]'
 };
 
 function renderVibeFilters() {
@@ -447,7 +450,7 @@ function renderVibeFilters() {
     let innerHtml = '';
     
     Array.from(vibes).sort().forEach(vibe => {
-        const colorClass = VIBE_COLORS[vibe] || 'bg-white/10';
+        const colorClass = VIBE_COLORS[vibe] || 'bg-zinc-300 drop-shadow-[0_0_5px_rgba(212,212,216,0.8)]';
         const isActive = activeVibes.has(vibe) ? 'active bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)] border-white/30' : 'bg-[#111113]/80 text-white/50 border-white/10 hover:text-white/80 hover:bg-white/5';
         innerHtml += `
             <button class="vibe-btn flex items-center gap-2 flex-shrink-0 border rounded-full px-4 py-2 text-[10px] font-display tracking-[0.2em] whitespace-nowrap transition-all ${isActive}" data-vibe="${vibe}">
