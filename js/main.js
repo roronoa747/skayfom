@@ -318,9 +318,9 @@ async function fetchCatalogData() {
             skipEmptyLines: true,
             complete: function(results) {
                 if (results.errors && results.errors.length > 0) {
-                    console.warn("Google Sheet parsing errors, falling back.", results.errors);
-                    fetchFallback();
-                } else if (results.data && results.data.length > 0) {
+                    console.warn("Google Sheet parsing warning:", results.errors);
+                }
+                if (results.data && results.data.length > 0) {
                     catalogData = results.data;
                     renderBrandFilters();
                     renderVibeFilters();
@@ -762,8 +762,8 @@ function createCard(item) {
              <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 12px 12px;"></div>
              
              <!-- Cyberpunk/Neon Spotlights (Optimized for Mobile GPU, NO blur() or mix-blend) -->
-             <div class="absolute top-0 left-0 w-[150%] h-[150%] pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style="background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%);"></div>
-             <div class="absolute bottom-0 right-0 w-[150%] h-[150%] pointer-events-none transform translate-x-1/4 translate-y-1/4" style="background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);"></div>
+             <div class="absolute top-0 left-0 w-[150%] h-[150%] pointer-events-none transform -translate-x-1/4 -translate-y-1/4 hidden md:block" style="background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%);"></div>
+             <div class="absolute bottom-0 right-0 w-[150%] h-[150%] pointer-events-none transform translate-x-1/4 translate-y-1/4 hidden md:block" style="background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);"></div>
              
              <!-- Image -->
              <img src="${imageSrc}" loading="lazy" class="${imageClass}" alt="${item.flavor}">
