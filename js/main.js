@@ -234,6 +234,8 @@ function initDOM() {
     DOM.modalClose = document.getElementById('modal-close');
     DOM.btnOpenCart = document.getElementById('btn-open-cart');
     DOM.cartBadge = document.getElementById('cart-badge');
+    DOM.btnFloatingCart = document.getElementById('btn-floating-cart');
+    DOM.floatingCartBadge = document.getElementById('floating-cart-badge');
     DOM.cartItemsContainer = document.getElementById('cart-items-container');
     DOM.cartEmptyState = document.getElementById('cart-empty-state');
     DOM.cartTotalPrice = document.getElementById('cart-total-price');
@@ -945,6 +947,7 @@ function initEventListeners() {
 
     if (DOM.btnConfirmOrder) DOM.btnConfirmOrder.addEventListener('click', generateWhatsAppLink);
     if (DOM.btnOpenCart) DOM.btnOpenCart.addEventListener('click', openCartDrawer);
+    if (DOM.btnFloatingCart) DOM.btnFloatingCart.addEventListener('click', openCartDrawer);
 }
 
 // 6. Cart & Modal Logic
@@ -971,15 +974,39 @@ function addToCart(item) {
 }
 
 function updateCartBadge() {
-    if (!DOM.cartBadge) return;
     const totalItems = cart.reduce((sum, c) => sum + c.quantity, 0);
-    DOM.cartBadge.textContent = totalItems;
-    if (totalItems > 0) {
-        DOM.cartBadge.classList.remove('scale-0');
-        DOM.cartBadge.classList.add('scale-100');
-    } else {
-        DOM.cartBadge.classList.remove('scale-100');
-        DOM.cartBadge.classList.add('scale-0');
+    
+    // Header Badge
+    if (DOM.cartBadge) {
+        DOM.cartBadge.textContent = totalItems;
+        if (totalItems > 0) {
+            DOM.cartBadge.classList.remove('scale-0');
+            DOM.cartBadge.classList.add('scale-100');
+        } else {
+            DOM.cartBadge.classList.remove('scale-100');
+            DOM.cartBadge.classList.add('scale-0');
+        }
+    }
+    
+    // Floating Mobile Badge
+    if (DOM.floatingCartBadge) {
+        DOM.floatingCartBadge.textContent = totalItems;
+        if (totalItems > 0) {
+            DOM.floatingCartBadge.classList.remove('scale-0');
+            DOM.floatingCartBadge.classList.add('scale-100');
+        } else {
+            DOM.floatingCartBadge.classList.remove('scale-100');
+            DOM.floatingCartBadge.classList.add('scale-0');
+        }
+    }
+    
+    // Floating Mobile Button Visibility
+    if (DOM.btnFloatingCart) {
+        if (totalItems > 0) {
+            DOM.btnFloatingCart.classList.remove('hidden');
+        } else {
+            DOM.btnFloatingCart.classList.add('hidden');
+        }
     }
 }
 
