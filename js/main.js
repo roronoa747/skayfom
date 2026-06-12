@@ -673,7 +673,7 @@ function renderCatalog() {
         initScrollReveal();
         
         // Init Vanilla Tilt (strictly desktop only, prevents iOS Safari GPU crash)
-        if (window.matchMedia("(hover: hover)").matches && window.matchMedia("(pointer: fine)").matches && typeof VanillaTilt !== 'undefined') {
+        if (window.innerWidth >= 1024 && window.matchMedia("(hover: hover)").matches && window.matchMedia("(pointer: fine)").matches && typeof VanillaTilt !== 'undefined') {
             const cards = Array.from(document.querySelectorAll(".glass-card:not(.tilt-initialized)"));
             if (cards.length > 0) {
                 cards.forEach(c => c.classList.add('tilt-initialized'));
@@ -682,7 +682,8 @@ function renderCatalog() {
                     speed: 400,
                     glare: true,
                     "max-glare": 0.3,
-                    scale: 1.02
+                    scale: 1.02,
+                    gyroscope: false
                 });
             }
         }
