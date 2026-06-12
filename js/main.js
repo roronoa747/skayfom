@@ -14,7 +14,8 @@ let activeIngredients = new Set();
 let activeBrand = null;
 let activeStrength = null;
 let activeProductCategory = 'Табаки';
-let selectedItemForOrder = null;
+let cart = []; // Array of { item, quantity, price, cartId }
+let cartIdCounter = 0;
 
 // Global map for marquees
 const activeMarquees = {};
@@ -231,8 +232,12 @@ function initDOM() {
     DOM.orderModal = document.getElementById('order-modal');
     DOM.orderModalContent = document.getElementById('order-modal-content');
     DOM.modalClose = document.getElementById('modal-close');
-    DOM.modalTitle = document.getElementById('modal-title');
-    DOM.modalSubtitle = document.getElementById('modal-subtitle');
+    DOM.btnOpenCart = document.getElementById('btn-open-cart');
+    DOM.cartBadge = document.getElementById('cart-badge');
+    DOM.cartItemsContainer = document.getElementById('cart-items-container');
+    DOM.cartEmptyState = document.getElementById('cart-empty-state');
+    DOM.cartTotalPrice = document.getElementById('cart-total-price');
+    DOM.toastContainer = document.getElementById('toast-container');
     DOM.modalTabBtns = document.querySelectorAll('.modal-tab-btn');
     DOM.deliveryBlock = document.getElementById('delivery-block');
     DOM.pickupBlock = document.getElementById('pickup-block');
@@ -403,7 +408,8 @@ function renderBrandFilters() {
         `;
     });
     
-    let repeatedHtml = innerHtml.repeat(50);
+    // 50 copies of 30 brands is 1500 nodes, which crashes mobile! Use 3 copies.
+    let repeatedHtml = innerHtml.repeat(3);
     
     DOM.brandFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
@@ -499,7 +505,8 @@ function renderVibeFilters() {
         `;
     });
     
-    let repeatedHtml = innerHtml.repeat(50);
+    // Limit copies to prevent DOM explosion
+    let repeatedHtml = innerHtml.repeat(4);
     
     DOM.vibeFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
@@ -617,32 +624,45 @@ function renderCatalog() {
         DOM.catalogGrid.appendChild(card);
     });
 
-    initScrollReveal();
-    
-    // Init Vanilla Tilt (only for desktop/mouse to be mobile-first safe)
-    if (window.matchMedia("(hover: hover)").matches && typeof VanillaTilt !== 'undefined') {
-        VanillaTilt.init(document.querySelectorAll(".glass-card"), {
-            max: 8,
-            speed: 400,
-            glare: true,
-            "max-glare": 0.3,
-            scale: 1.02
-        });
-    }
+    // Use a small timeout to let the DOM settle before observing, prevents layout thrashing
+    setTimeout(() => {
+        initScrollReveal();
+        
+        // Init Vanilla Tilt (strictly desktop only, prevents iOS Safari GPU crash)
+        if (window.matchMedia("(hover: hover)").matches && window.matchMedia("(pointer: fine)").matches && typeof VanillaTilt !== 'undefined') {
+            const cards = Array.from(document.querySelectorAll(".glass-card:not(.tilt-initialized)"));
+            if (cards.length > 0) {
+                cards.forEach(c => c.classList.add('tilt-initialized'));
+                VanillaTilt.init(cards, {
+                    max: 8,
+                    speed: 400,
+                    glare: true,
+                    "max-glare": 0.3,
+                    scale: 1.02
+                });
+            }
+        }
+    }, 50);
 }
 
+let scrollObserver = null;
+
 function initScrollReveal() {
-    const observer = new IntersectionObserver((entries) => {
+    if (scrollObserver) {
+        scrollObserver.disconnect();
+    }
+    
+    scrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.remove('reveal-hidden');
                 entry.target.classList.add('reveal-visible');
-                observer.unobserve(entry.target);
+                scrollObserver.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.05 });
 
-    document.querySelectorAll('.reveal-hidden').forEach(el => observer.observe(el));
+    document.querySelectorAll('.reveal-hidden').forEach(el => scrollObserver.observe(el));
 }
 
 function createCard(item) {
@@ -685,16 +705,15 @@ function createCard(item) {
              <!-- Subtle Dot Grid -->
              <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 12px 12px;"></div>
              
-             <!-- Cyberpunk/Neon Spotlights -->
-             <div class="absolute top-0 left-0 w-3/4 h-3/4 bg-sky-500/20 rounded-full blur-[50px] pointer-events-none mix-blend-screen transform -translate-x-1/4 -translate-y-1/4"></div>
-             <div class="absolute bottom-0 right-0 w-3/4 h-3/4 bg-purple-500/15 rounded-full blur-[50px] pointer-events-none mix-blend-screen transform translate-x-1/4 translate-y-1/4"></div>
-             <div class="absolute top-1/2 left-1/2 w-1/2 h-1/2 bg-white/5 rounded-full blur-[30px] pointer-events-none transform -translate-x-1/2 -translate-y-1/2"></div>
+             <!-- Cyberpunk/Neon Spotlights (Optimized for Mobile GPU, NO blur() or mix-blend) -->
+             <div class="absolute top-0 left-0 w-[150%] h-[150%] pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style="background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%);"></div>
+             <div class="absolute bottom-0 right-0 w-[150%] h-[150%] pointer-events-none transform translate-x-1/4 translate-y-1/4" style="background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);"></div>
              
              <!-- Image -->
              <img src="${imageSrc}" loading="lazy" class="${imageClass}" alt="${item.flavor}">
              
              <!-- Grounding Shadow -->
-             <div class="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-20 pointer-events-none"></div>
+             <div class="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent z-20 pointer-events-none"></div>
         </div>
         
         <div class="flex-1 flex flex-col relative z-20">
@@ -704,16 +723,16 @@ function createCard(item) {
             
             <div class="mt-auto flex flex-col gap-4">
                 ${strengthDots}
-                <button class="w-full py-3 rounded-lg text-xs font-display tracking-[0.2em] transition-all duration-500 border border-orange-500/20 bg-orange-950/20 text-orange-500/60 shadow-[0_0_10px_rgba(234,88,12,0.1)] group-hover:border-orange-500/40 group-hover:text-orange-400 group-hover:shadow-[0_0_20px_rgba(234,88,12,0.2)] hover:!bg-gradient-to-r hover:!from-orange-500 hover:!to-red-600 hover:!border-orange-400 hover:!text-white hover:!shadow-[0_0_40px_rgba(239,68,68,0.8),inset_0_0_20px_rgba(255,255,255,0.5)] btn-order">
-                    ЗАКАЗАТЬ
+                <button class="w-full py-3 rounded-lg text-xs font-display tracking-[0.2em] transition-all duration-500 border border-orange-500/20 bg-orange-950/20 text-orange-500/60 shadow-[0_0_10px_rgba(234,88,12,0.1)] group-hover:border-orange-500/40 group-hover:text-orange-400 group-hover:shadow-[0_0_20px_rgba(234,88,12,0.2)] hover:!bg-gradient-to-r hover:!from-orange-500 hover:!to-red-600 hover:!border-orange-400 hover:!text-white hover:!shadow-[0_0_40px_rgba(239,68,68,0.8),inset_0_0_20px_rgba(255,255,255,0.5)] btn-add-cart">
+                    В КОРЗИНУ
                 </button>
             </div>
         </div>
     `;
 
-    const btnOrder = div.querySelector('.btn-order');
-    if (btnOrder) {
-        btnOrder.addEventListener('click', () => openOrderModal(item));
+    const btnAddCart = div.querySelector('.btn-add-cart');
+    if (btnAddCart) {
+        btnAddCart.addEventListener('click', () => addToCart(item));
     }
 
     return div;
@@ -925,27 +944,172 @@ function initEventListeners() {
     }
 
     if (DOM.btnConfirmOrder) DOM.btnConfirmOrder.addEventListener('click', generateWhatsAppLink);
+    if (DOM.btnOpenCart) DOM.btnOpenCart.addEventListener('click', openCartDrawer);
 }
 
-// 6. Modal & WhatsApp Logic
-function openOrderModal(item) {
-    selectedItemForOrder = item;
-    if (DOM.modalTitle) DOM.modalTitle.textContent = item.type === 'Аренда' ? 'Заявка на аренду' : 'Оформление заказа';
-    if (DOM.modalSubtitle) DOM.modalSubtitle.textContent = `${item.brand} — ${item.flavor}`;
+// 6. Cart & Modal Logic
+function addToCart(item) {
+    let itemPrice = item.price ? parseInt(String(item.price).replace(/\D/g, '')) : 0;
+    if (isNaN(itemPrice)) itemPrice = 0;
+
+    const existingIndex = cart.findIndex(c => c.item.brand === item.brand && c.item.flavor === item.flavor && c.item.type === item.type);
+    
+    if (existingIndex > -1) {
+        cart[existingIndex].quantity += 1;
+    } else {
+        cart.push({
+            cartId: cartIdCounter++,
+            item: item,
+            quantity: 1,
+            price: itemPrice
+        });
+    }
+
+    updateCartBadge();
+    showToast(item);
+    renderCartUI();
+}
+
+function updateCartBadge() {
+    if (!DOM.cartBadge) return;
+    const totalItems = cart.reduce((sum, c) => sum + c.quantity, 0);
+    DOM.cartBadge.textContent = totalItems;
+    if (totalItems > 0) {
+        DOM.cartBadge.classList.remove('scale-0');
+        DOM.cartBadge.classList.add('scale-100');
+    } else {
+        DOM.cartBadge.classList.remove('scale-100');
+        DOM.cartBadge.classList.add('scale-0');
+    }
+}
+
+function showToast(item) {
+    if (!DOM.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'bg-[#111113]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl flex items-center gap-4 transform translate-y-full opacity-0 transition-all duration-500';
+    
+    const imgSrc = item.media_url ? `public/${item.media_url}` : 'public/images/logo.png';
+    toast.innerHTML = `
+        <div class="w-10 h-10 bg-black rounded border border-white/5 p-1 shrink-0">
+            <img src="${imgSrc}" class="w-full h-full object-contain" onerror="this.src='public/images/logo.png'">
+        </div>
+        <div class="flex-1">
+            <p class="text-[10px] text-sky-400 font-display tracking-widest mb-0.5">ДОБАВЛЕНО</p>
+            <p class="text-sm font-alt font-bold leading-tight line-clamp-1">${item.brand} - ${item.flavor}</p>
+        </div>
+    `;
+    
+    DOM.toastContainer.appendChild(toast);
+    
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-full', 'opacity-0');
+    });
+    
+    setTimeout(() => {
+        toast.classList.add('translate-y-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+function removeFromCart(cartId) {
+    cart = cart.filter(c => c.cartId !== cartId);
+    updateCartBadge();
+    renderCartUI();
+}
+
+function updateQuantity(cartId, delta) {
+    const cartItem = cart.find(c => c.cartId === cartId);
+    if (cartItem) {
+        cartItem.quantity += delta;
+        if (cartItem.quantity < 1) cartItem.quantity = 1;
+        if (cartItem.quantity > 99) cartItem.quantity = 99;
+        updateCartBadge();
+        renderCartUI();
+    }
+}
+
+function openCartDrawer() {
+    renderCartUI();
     
     // Reset modal state
     if (DOM.deliveryAddress) DOM.deliveryAddress.value = '';
-    if (DOM.modalTabBtns && DOM.modalTabBtns.length > 0) DOM.modalTabBtns[0].click(); // Select default delivery
+    if (DOM.modalTabBtns && DOM.modalTabBtns.length > 0) DOM.modalTabBtns[0].click(); 
     
     if (DOM.orderModal) {
         DOM.orderModal.classList.remove('hidden');
-        // slight delay for transition
         setTimeout(() => {
             DOM.orderModal.classList.remove('opacity-0');
             if (DOM.orderModalContent) {
                 DOM.orderModalContent.classList.remove('translate-y-full', 'md:translate-x-full');
             }
         }, 20);
+    }
+}
+
+function renderCartUI() {
+    if (!DOM.cartItemsContainer || !DOM.cartEmptyState) return;
+    
+    DOM.cartItemsContainer.innerHTML = '';
+    
+    if (cart.length === 0) {
+        DOM.cartItemsContainer.classList.add('hidden');
+        DOM.cartEmptyState.classList.remove('hidden');
+        if (DOM.btnConfirmOrder) DOM.btnConfirmOrder.classList.add('opacity-50', 'pointer-events-none');
+        if (DOM.cartTotalPrice) DOM.cartTotalPrice.textContent = '0 ₸';
+        return;
+    }
+    
+    DOM.cartItemsContainer.classList.remove('hidden');
+    DOM.cartEmptyState.classList.add('hidden');
+    if (DOM.btnConfirmOrder) DOM.btnConfirmOrder.classList.remove('opacity-50', 'pointer-events-none');
+    
+    let grandTotal = 0;
+    
+    cart.forEach(c => {
+        grandTotal += c.price * c.quantity;
+        const item = c.item;
+        const imgSrc = item.media_url ? `public/${item.media_url}` : 'public/images/logo.png';
+        const badgeText = item.type === 'Аренда' ? 'Аренда' : 'Покупка';
+        const priceText = c.price > 0 ? `${c.price.toLocaleString('ru-RU')} ₸` : 'Уточняется';
+        
+        const div = document.createElement('div');
+        div.className = 'bg-[#111113]/80 border border-white/10 rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden shrink-0';
+        div.innerHTML = `
+            <div class="absolute top-0 right-0 bg-white/10 text-[9px] font-display tracking-[0.2em] px-3 py-1 rounded-bl-xl border-b border-l border-white/10 text-white/80">${badgeText}</div>
+            <button class="btn-remove absolute top-8 right-2 p-2 text-white/30 hover:text-red-400 transition-colors" data-id="${c.cartId}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 bg-[#050507] rounded-lg border border-white/5 flex items-center justify-center p-2 relative overflow-hidden shrink-0">
+                    <img src="${imgSrc}" class="w-full h-full object-contain relative z-10" onerror="this.src='public/images/logo.png'">
+                </div>
+                <div class="pr-8">
+                    <h4 class="text-[9px] text-neutral-500 font-display tracking-[0.2em] uppercase mb-1">${item.brand || 'S.KAYFOM'}</h4>
+                    <h3 class="text-sm font-alt font-bold leading-tight line-clamp-2">${item.flavor || ''}</h3>
+                </div>
+            </div>
+            <div class="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
+                <div class="flex items-center bg-black/50 border border-white/10 rounded-lg overflow-hidden">
+                    <button class="btn-qty-minus px-4 py-2 text-white/50 hover:text-white hover:bg-white/10 transition-colors font-bold text-lg leading-none select-none touch-manipulation">−</button>
+                    <span class="px-2 py-2 text-sm font-bold min-w-[2.5rem] text-center font-alt">${c.quantity}</span>
+                    <button class="btn-qty-plus px-4 py-2 text-white/50 hover:text-white hover:bg-white/10 transition-colors font-bold text-lg leading-none select-none touch-manipulation">+</button>
+                </div>
+                <div class="text-right">
+                    <span class="text-[9px] text-white/40 block mb-0.5 font-display tracking-[0.2em]">ЦЕНА</span>
+                    <span class="font-alt font-bold text-sm text-sky-400">${priceText}</span>
+                </div>
+            </div>
+        `;
+        
+        div.querySelector('.btn-remove').addEventListener('click', () => removeFromCart(c.cartId));
+        div.querySelector('.btn-qty-minus').addEventListener('click', () => updateQuantity(c.cartId, -1));
+        div.querySelector('.btn-qty-plus').addEventListener('click', () => updateQuantity(c.cartId, 1));
+        
+        DOM.cartItemsContainer.appendChild(div);
+    });
+    
+    if (DOM.cartTotalPrice) {
+        DOM.cartTotalPrice.textContent = grandTotal > 0 ? `${grandTotal.toLocaleString('ru-RU')} ₸` : 'Уточняется';
     }
 }
 
@@ -961,44 +1125,65 @@ function closeOrderModal() {
     }, 300);
 }
 
+// 7. WhatsApp Logic
 function generateWhatsAppLink() {
+    if (cart.length === 0) return;
+
+    let method = 'Доставка';
+    if (DOM.modalTabBtns) {
+        DOM.modalTabBtns.forEach(btn => {
+            if (btn.classList.contains('active')) {
+                method = btn.dataset.method;
+            }
+        });
+    }
+
+    let address = '';
+    if (method === 'Доставка' && DOM.deliveryAddress) {
+        address = DOM.deliveryAddress.value.trim();
+        if (!address) {
+            alert('Пожалуйста, укажите адрес доставки.');
+            return;
+        }
+    }
+
+    // Trigger smoke effect for WOW factor on checkout
     triggerSmoke(1000);
-    
+
     setTimeout(() => {
-        const item = selectedItemForOrder;
-        const methodBtn = document.querySelector('.modal-tab-btn.active');
-        const method = methodBtn ? methodBtn.dataset.method : 'Доставка';
-        const address = DOM.deliveryAddress ? DOM.deliveryAddress.value.trim() : '';
+        let text = `Привет! Хочу оформить заказ:\n\n`;
+        let grandTotal = 0;
         
-        let text = '';
+        cart.forEach((c, index) => {
+            const item = c.item;
+            const lineTotal = c.price * c.quantity;
+            grandTotal += lineTotal;
+            
+            const badge = item.type === 'Аренда' ? 'Аренда' : 'Магазин';
+            const str = item.strength ? `(Крепость: ${item.strength}) ` : '';
+            text += `${index + 1}. [${badge}] ${item.brand || 'S.KAYFOM'} - ${item.flavor || ''} ${str}(x${c.quantity})`;
+            if (c.price > 0) text += ` = ${lineTotal.toLocaleString('ru-RU')} ₸`;
+            text += `\n`;
+        });
         
-        if (item.category === 'Для заведения') {
-             text = `Здравствуйте! Интересуют оптовые поставки для заведения. Вышлите прайс-лист.`;
-        } else if (item.type === 'Аренда') {
-             text = `Здравствуйте, интересует аренда кальяна, пакет: ${item.brand} - ${item.flavor}.`;
-             if (method === 'Доставка' && address) {
-                 text += ` Доставка по адресу: ${address}.`;
-             } else if (method === 'Самовывоз') {
-                 text += ` Выбран самовывоз.`;
-             }
-        } else {
-             // Магазин - Покупка
-             const inStock = String(item.in_stock).toLowerCase() === 'true' || String(item.in_stock).toLowerCase() === 'да';
-             
-             if (inStock) {
-                 text = `Привет! Я с сайта S.KAYFOM STORE. Хочу купить: ${item.brand} — ${item.flavor}. Крепость: ${item.strength || '-'}.`;
-                 if (method === 'Доставка') {
-                     text += ` Доставка по адресу: ${address ? address : 'не указан'}.`;
-                 } else {
-                     text += ` Выбран самовывоз.`;
-                 }
-             } else {
-                 text = `Привет! Когда ожидать поступление вкуса: ${item.brand} — ${item.flavor}?`;
-             }
+        text += `\n----------------\n`;
+        if (grandTotal > 0) {
+            text += `Итого: ${grandTotal.toLocaleString('ru-RU')} ₸ (без учета доставки)\n`;
         }
         
-        const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-        window.open(waLink, '_blank');
+        if (method === 'Доставка') {
+            text += `Способ получения: Доставка\nАдрес: ${address}`;
+        } else {
+            text += `Способ получения: Самовывоз`;
+        }
+
+        const encodedText = encodeURIComponent(text);
+        const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodedText}`;
+        window.open(waUrl, '_blank');
+        
+        // Optional: clear cart after opening WA
+        // cart = [];
+        // updateCartBadge();
         closeOrderModal();
     }, 800);
 }// Ensure it initializes
