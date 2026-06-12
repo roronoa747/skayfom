@@ -1309,3 +1309,40 @@ function initResponsiveMixBuilder() {
     // Check on resize
     window.addEventListener('resize', moveMixBuilder, { passive: true });
 }
+
+function initReviewsSlider() {
+    const track = document.getElementById('reviews-slider-track');
+    if (!track) return;
+    
+    // We have 3 original slides
+    const slides = Array.from(track.querySelectorAll('.review-slide'));
+    if (slides.length <= 1) return;
+    
+    let currentIndex = 0;
+    const totalSlides = slides.length - 1; // 3 original + 1 clone = 4 slides total. totalSlides original is 3.
+    
+    setInterval(() => {
+        currentIndex++;
+        
+        // Calculate the height of one slide + margin
+        // Typically p-4 + mb-4 = 16px padding + 16px margin. We can just use offsetHeight + 16 (for mb-4 gap)
+        const slideHeight = slides[0].offsetHeight + 16;
+        
+        track.style.transition = 'transform 0.7s cubic-bezier(0.25, 1, 0.5, 1)';
+        track.style.transform = `translateY(-${currentIndex * slideHeight}px)`;
+        
+        // If we reached the clone, jump back to start seamlessly
+        if (currentIndex === totalSlides) {
+            setTimeout(() => {
+                track.style.transition = 'none';
+                currentIndex = 0;
+                track.style.transform = `translateY(0)`;
+            }, 700); // wait for the transition to finish
+        }
+    }, 5000);
+}
+
+// Call on load
+document.addEventListener('DOMContentLoaded', () => {
+    initReviewsSlider();
+});
