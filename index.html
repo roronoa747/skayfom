@@ -92,7 +92,10 @@
     <!-- HEADER & NAVIGATION -->
     <header id="main-header" class="relative md:sticky md:top-0 z-30 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-2 md:pb-4 transition-all duration-500 ease-in-out will-change-transform">
         <!-- Base Blur & Background -->
-        <div class="absolute inset-0 bg-[#070708]/80 backdrop-blur-3xl z-[-3]"></div>
+        <div class="absolute inset-0 bg-[#070708]/85 backdrop-blur-3xl z-[-3]"></div>
+        
+        <!-- Noise Texture Overlay -->
+        <div class="absolute inset-0 bg-noise z-[-2] mix-blend-overlay opacity-20 pointer-events-none"></div>
 
         <!-- Glowing Bottom Border -->
         <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-50 z-[-1] animate-border-glow"></div>
