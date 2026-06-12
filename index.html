@@ -52,7 +52,7 @@
     <!-- Main Content Wrapper for Scale Effect -->
     <div id="app-wrapper" class="flex-1 flex flex-col min-h-screen w-full transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-center">
         <!-- Cinematic Atmosphere Glow -->
-        <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden hidden md:block">
+        <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
         <div class="absolute top-[10%] left-[20%] w-[800px] h-[800px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(234,88,12,1) 0%, rgba(234,88,12,0) 70%);"></div>
         <div class="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(185,28,28,1) 0%, rgba(185,28,28,0) 70%);"></div>
     </div>
@@ -94,13 +94,13 @@
     <!-- HEADER & NAVIGATION -->
     <header id="main-header" class="relative md:sticky md:top-0 z-30 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-2 md:pb-4 transition-all duration-500 ease-in-out will-change-transform">
         <!-- Base Blur & Background -->
-        <div class="absolute inset-0 bg-[#070708]/85 backdrop-blur-xl md:backdrop-blur-3xl z-[-3]"></div>
+        <div class="absolute inset-0 bg-[#070708]/85 backdrop-blur-3xl z-[-3]"></div>
         
         <!-- Noise Texture Overlay -->
-        <div class="absolute inset-0 bg-noise z-[-2] mix-blend-overlay opacity-20 pointer-events-none hidden md:block"></div>
+        <div class="absolute inset-0 bg-noise z-[-2] mix-blend-overlay opacity-20 pointer-events-none"></div>
 
         <!-- Glowing Bottom Border -->
-        <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-50 z-[-1] animate-border-glow hidden md:block"></div>
+        <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-50 z-[-1] animate-border-glow"></div>
 
         <div class="container mx-auto px-4 max-w-6xl relative z-10">
             <!-- Top Row: Logo, Search, B2B -->
