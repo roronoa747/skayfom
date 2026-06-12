@@ -90,19 +90,12 @@
     </div>
 
     <!-- HEADER & NAVIGATION -->
-    <header id="main-header" class="relative md:sticky md:top-0 z-30 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-2 md:pb-4 overflow-hidden border-b border-white/5 transition-all duration-500 ease-in-out will-change-transform">
+    <header id="main-header" class="relative md:sticky md:top-0 z-30 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-2 md:pb-4 transition-all duration-500 ease-in-out will-change-transform">
         <!-- Base Blur & Background -->
-        <div class="absolute inset-0 bg-[#070708]/95 backdrop-blur-3xl z-[-3]"></div>
+        <div class="absolute inset-0 bg-[#070708]/80 backdrop-blur-3xl z-[-3]"></div>
 
-        <!-- Custom CSS Smoke Animation -->
-        <div class="absolute inset-0 z-[-2] pointer-events-none mix-blend-screen overflow-visible opacity-60">
-            <!-- Left Smoke -->
-            <div class="absolute -top-10 -left-10 w-[400px] h-[300px] animate-smoke-1" style="background: radial-gradient(circle, rgba(234,88,12,0.8) 0%, rgba(234,88,12,0) 70%);"></div>
-            <!-- Right Smoke -->
-            <div class="absolute top-0 -right-20 w-[500px] h-[350px] animate-smoke-2" style="background: radial-gradient(circle, rgba(220,38,38,0.8) 0%, rgba(220,38,38,0) 70%);"></div>
-            <!-- Center Smoke -->
-            <div class="absolute -bottom-10 left-[20%] w-[450px] h-[300px] animate-smoke-1" style="animation-delay: -10s; animation-duration: 30s; background: radial-gradient(circle, rgba(126,34,206,0.8) 0%, rgba(126,34,206,0) 70%);"></div>
-        </div>
+        <!-- Glowing Bottom Border -->
+        <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-50 z-[-1] animate-border-glow"></div>
 
         <div class="container mx-auto px-4 max-w-6xl relative z-10">
             <!-- Top Row: Logo, Search, B2B -->

@@ -131,26 +131,16 @@ body {
     filter: invert(90%) hue-rotate(180deg) brightness(80%) contrast(120%);
 }
 
-/* Custom User Smoke */
-@keyframes smokeDriftOne {
-  0% { transform: translate(0px, 0px) scale(1); opacity: 0.15; }
-  33% { transform: translate(40px, -30px) scale(1.2); opacity: 0.25; }
-  66% { transform: translate(-20px, 20px) scale(0.9); opacity: 0.1; }
-  100% { transform: translate(0px, 0px) scale(1); opacity: 0.15; }
+/* Glowing Border Animation */
+@keyframes borderGlow {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
 }
 
-@keyframes smokeDriftTwo {
-  0% { transform: translate(0px, 0px) scale(1.1); opacity: 0.2; }
-  50% { transform: translate(-50px, 40px) scale(0.85); opacity: 0.1; }
-  100% { transform: translate(0px, 0px) scale(1.1); opacity: 0.2; }
-}
-
-.animate-smoke-1 {
-  animation: smokeDriftOne 25s ease-in-out infinite;
-}
-
-.animate-smoke-2 {
-  animation: smokeDriftTwo 35s ease-in-out infinite;
+.animate-border-glow {
+  animation: borderGlow 4s linear infinite;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%);
 }
 
 /* Marquee Animations */
