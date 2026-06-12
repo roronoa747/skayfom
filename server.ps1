@@ -2,48 +2,43 @@ $port = 8080
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")
 $listener.Start()
+Write-Host "Сервер запущен на http://localhost:$port"
 
-Write-Host "Server started! Open http://localhost:$port/ in your browser."
-Write-Host "Leave this running..."
+try {
+    while ($listener.IsListening) {
+        $context = $listener.GetContext()
+        $response = $context.Response
+        $request = $context.Request
+        $path = $request.Url.LocalPath
+        if ($path -eq "/") { $path = "/index.html" }
+        $localFilePath = Join-Path $PWD $path.TrimStart("/")
 
-while ($listener.IsListening) {
-    $context = $listener.GetContext()
-    $request = $context.Request
-    $response = $context.Response
-
-    $path = $request.Url.LocalPath
-    if ($path -eq "/") { $path = "/index.html" }
-    
-    # Replace forward slashes with backslashes
-    $path = $path -replace '/', '\'
-    $fullPath = Join-Path $PWD $path
-    
-    try {
-        if (Test-Path $fullPath -PathType Leaf) {
-            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
-            
-            $ext = [System.IO.Path]::GetExtension($fullPath).ToLower()
-            $mime = "application/octet-stream"
-            switch ($ext) {
-                ".html" { $mime = "text/html" }
-                ".css"  { $mime = "text/css" }
-                ".js"   { $mime = "application/javascript" }
-                ".png"  { $mime = "image/png" }
-                ".jpg"  { $mime = "image/jpeg" }
-                ".jpeg" { $mime = "image/jpeg" }
-                ".csv"  { $mime = "text/csv" }
+        if (Test-Path $localFilePath -PathType Leaf) {
+            try {
+                $content = [System.IO.File]::ReadAllBytes($localFilePath)
+                $response.ContentLength64 = $content.Length
+                
+                # Set basic MIME types
+                switch -Regex ($localFilePath) {
+                    "\.html$" { $response.ContentType = "text/html" }
+                    "\.css$" { $response.ContentType = "text/css" }
+                    "\.js$" { $response.ContentType = "application/javascript" }
+                    "\.csv$" { $response.ContentType = "text/csv" }
+                    "\.svg$" { $response.ContentType = "image/svg+xml" }
+                    "\.png$" { $response.ContentType = "image/png" }
+                    "\.jpg$" { $response.ContentType = "image/jpeg" }
+                    default { $response.ContentType = "application/octet-stream" }
+                }
+                
+                $response.OutputStream.Write($content, 0, $content.Length)
+            } catch {
+                $response.StatusCode = 500
             }
-            
-            $response.ContentType = $mime
-            $response.ContentLength64 = $bytes.Length
-            $response.OutputStream.Write($bytes, 0, $bytes.Length)
-            $response.StatusCode = 200
         } else {
             $response.StatusCode = 404
         }
-    } catch {
-        $response.StatusCode = 500
+        $response.Close()
     }
-    
-    $response.Close()
+} finally {
+    $listener.Stop()
 }

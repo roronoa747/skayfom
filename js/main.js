@@ -39,9 +39,18 @@ function initJSMarquee(containerId, speed) {
     
     let currentSpeed = speed;
     let isHovered = false;
+    let hasDragged = false;
+    let lastFrameTime = performance.now();
     const RESUME_DELAY = 800;
     
-    function autoScroll() {
+    function autoScroll(currentTime) {
+        let deltaTime = currentTime - lastFrameTime;
+        lastFrameTime = currentTime;
+        
+        // Cap deltaTime to avoid huge jumps if tab was inactive
+        if (deltaTime > 100) deltaTime = 16.666;
+        
+        let dt = deltaTime / 16.666; // 1.0 at 60fps
         let targetSpeed = speed;
         
         if (isDown) {
@@ -55,28 +64,28 @@ function initJSMarquee(containerId, speed) {
 
         // Apply easing to speed
         currentSpeed += (targetSpeed - currentSpeed) * 0.05;
-        
-        // Only snap to 0 if the target is 0, otherwise it might get stuck when trying to accelerate from 0
         if (targetSpeed === 0 && Math.abs(currentSpeed) < 0.01) currentSpeed = 0;
 
         if (currentSpeed !== 0) {
             const halfWidth = inner.scrollWidth / 2;
+            let moveAmount = currentSpeed * dt;
+            
+            exactScrollLeft += moveAmount;
             
             if (speed > 0) {
                 if (exactScrollLeft >= halfWidth) {
                     exactScrollLeft -= halfWidth;
                 }
-                exactScrollLeft += currentSpeed;
             } else {
                 if (exactScrollLeft <= 0) {
                     exactScrollLeft += halfWidth;
                 }
-                exactScrollLeft += currentSpeed;
             }
             container.scrollLeft = exactScrollLeft;
         } else {
             exactScrollLeft = container.scrollLeft;
         }
+        
         activeMarquees[containerId].raf = requestAnimationFrame(autoScroll);
     }
     
@@ -86,6 +95,7 @@ function initJSMarquee(containerId, speed) {
     
     container.addEventListener('mousedown', (e) => {
         isDown = true;
+        hasDragged = false;
         container.classList.add('cursor-grabbing');
         container.classList.remove('cursor-grab');
         startX = e.pageX - container.offsetLeft;
@@ -106,21 +116,35 @@ function initJSMarquee(containerId, speed) {
         lastInteractionTime = Date.now();
     });
     
-    container.addEventListener('mouseup', () => {
-        isDown = false;
-        container.classList.remove('cursor-grabbing');
-        container.classList.add('cursor-grab');
-        lastInteractionTime = Date.now();
+    window.addEventListener('mouseup', () => {
+        if (isDown) {
+            isDown = false;
+            container.classList.remove('cursor-grabbing');
+            container.classList.add('cursor-grab');
+            lastInteractionTime = Date.now();
+        }
     });
     
     container.addEventListener('mousemove', (e) => {
         if (!isDown) return;
         e.preventDefault();
         const x = e.pageX - container.offsetLeft;
-        const walk = (x - startX) * 0.8;
+        const walk = (x - startX) * 1.5;
+        if (Math.abs(x - startX) > 5) {
+            hasDragged = true;
+        }
         container.scrollLeft = scrollLeft - walk;
         lastInteractionTime = Date.now();
     });
+    
+    // Prevent accidental clicks after dragging
+    container.addEventListener('click', (e) => {
+        if (hasDragged) {
+            e.preventDefault();
+            e.stopPropagation();
+            hasDragged = false;
+        }
+    }, { capture: true });
     
     container.addEventListener('touchstart', () => {
         isAutoScrolling = false;
@@ -128,6 +152,11 @@ function initJSMarquee(containerId, speed) {
     }, {passive: true});
     
     container.addEventListener('touchend', () => {
+        lastInteractionTime = Date.now();
+        isAutoScrolling = true;
+    }, {passive: true});
+    
+    container.addEventListener('touchcancel', () => {
         lastInteractionTime = Date.now();
         isAutoScrolling = true;
     }, {passive: true});
@@ -326,14 +355,14 @@ function renderBrandFilters() {
         `;
     });
     
+    let repeatedHtml = innerHtml.repeat(8);
+    
     DOM.brandFilters.innerHTML = `
-        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-neutral-950 pr-2">БРЕНД:</span>
-        <div class="overflow-hidden w-full mask-edges relative flex cursor-pointer">
-            <div class="flex gap-2 w-max animate-marquee-left hover:[animation-play-state:paused] pl-2 pr-2">
-                ${innerHtml}
-                ${innerHtml}
-                ${innerHtml}
-                ${innerHtml}
+        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
+        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="brand-marquee-container">
+            <div class="flex gap-2 w-max js-marquee-inner px-2">
+                <div class="flex gap-2">${repeatedHtml}</div>
+                <div class="flex gap-2">${repeatedHtml}</div>
             </div>
         </div>
     `;
@@ -350,6 +379,8 @@ function renderBrandFilters() {
             renderCatalog();
         });
     });
+    
+    initJSMarquee('brand-marquee-container', 0.5);
 }
 
 const VIBE_COLORS = {
@@ -406,14 +437,14 @@ function renderVibeFilters() {
         `;
     });
     
+    let repeatedHtml = innerHtml.repeat(8);
+    
     DOM.vibeFilters.innerHTML = `
-        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-neutral-950 pr-2">ВАЙБ:</span>
-        <div class="overflow-hidden w-full mask-edges relative flex cursor-pointer">
-            <div class="flex gap-3 w-max animate-marquee-right hover:[animation-play-state:paused] pl-3 pr-3">
-                ${innerHtml}
-                ${innerHtml}
-                ${innerHtml}
-                ${innerHtml}
+        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
+        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="vibe-marquee-container">
+            <div class="flex gap-3 w-max js-marquee-inner px-3">
+                <div class="flex gap-3">${repeatedHtml}</div>
+                <div class="flex gap-3">${repeatedHtml}</div>
             </div>
         </div>
     `;
@@ -431,6 +462,8 @@ function renderVibeFilters() {
             renderCatalog();
         });
     });
+    
+    initJSMarquee('vibe-marquee-container', -0.5);
 }
 
 function renderCatalog() {
