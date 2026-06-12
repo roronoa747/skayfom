@@ -18,6 +18,7 @@ let selectedItemForOrder = null;
 
 // Global map for marquees
 const activeMarquees = {};
+let globalMarqueeInteractionTime = 0;
 
 function initJSMarquee(containerId, speed) {
     if (activeMarquees[containerId]) {
@@ -38,8 +39,6 @@ function initJSMarquee(containerId, speed) {
     
     let hasDragged = false;
     let lastFrameTime = performance.now();
-    // Initialize timer on creation so it pauses 2 seconds after a button click re-renders it!
-    let lastInteractionTime = Date.now();
     const RESUME_DELAY = 2000; // 2 seconds timer
     
     function autoScroll(currentTime) {
@@ -50,7 +49,7 @@ function initJSMarquee(containerId, speed) {
         if (deltaTime > 100) deltaTime = 16.666;
         let dt = deltaTime / 16.666;
         
-        let isInteracting = Date.now() - lastInteractionTime < RESUME_DELAY;
+        let isInteracting = Date.now() - globalMarqueeInteractionTime < RESUME_DELAY;
         // Safe hover detection for desktop only
         let isMouseOver = window.matchMedia("(hover: hover)").matches && container.matches(':hover');
         
@@ -102,7 +101,7 @@ function initJSMarquee(containerId, speed) {
     // Desktop hover exit starts the 2-second timer
     if (window.matchMedia("(hover: hover)").matches) {
         container.addEventListener('mouseleave', () => {
-            lastInteractionTime = Date.now();
+            globalMarqueeInteractionTime = Date.now();
         });
     }
     
@@ -114,7 +113,7 @@ function initJSMarquee(containerId, speed) {
         startX = e.pageX - container.offsetLeft;
         scrollLeft = container.scrollLeft;
         isAutoScrolling = false;
-        lastInteractionTime = Date.now();
+        globalMarqueeInteractionTime = Date.now();
     });
     
     window.addEventListener('mouseup', () => {
@@ -123,7 +122,7 @@ function initJSMarquee(containerId, speed) {
             isAutoScrolling = true; // FIX: Re-enable auto-scroll after mouse drag!
             container.classList.remove('cursor-grabbing');
             container.classList.add('cursor-grab');
-            lastInteractionTime = Date.now();
+            globalMarqueeInteractionTime = Date.now();
         }
     });
     
@@ -150,7 +149,7 @@ function initJSMarquee(containerId, speed) {
         }
         
         container.scrollLeft = targetScroll;
-        lastInteractionTime = Date.now();
+        globalMarqueeInteractionTime = Date.now();
     });
     
     // Prevent accidental clicks after dragging
@@ -164,26 +163,26 @@ function initJSMarquee(containerId, speed) {
     
     container.addEventListener('touchstart', () => {
         isAutoScrolling = false;
-        lastInteractionTime = Date.now();
+        globalMarqueeInteractionTime = Date.now();
     }, {passive: true});
     
     // Also track touchmove to keep resetting timer
     container.addEventListener('touchmove', () => {
-        lastInteractionTime = Date.now();
+        globalMarqueeInteractionTime = Date.now();
     }, {passive: true});
     
     container.addEventListener('touchend', () => {
         isAutoScrolling = true;
-        lastInteractionTime = Date.now();
+        globalMarqueeInteractionTime = Date.now();
     }, {passive: true});
     
     container.addEventListener('touchcancel', () => {
         isAutoScrolling = true;
-        lastInteractionTime = Date.now();
+        globalMarqueeInteractionTime = Date.now();
     }, {passive: true});
     
     container.addEventListener('wheel', () => {
-        lastInteractionTime = Date.now();
+        globalMarqueeInteractionTime = Date.now();
     }, {passive: true});
 }
 
