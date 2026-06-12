@@ -48,9 +48,11 @@
     <link rel="stylesheet" href="style.css?v=3">
 </head>
 
-<body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden selection:bg-white/30 relative">
-    <!-- Cinematic Atmosphere Glow -->
-    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+<body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden selection:bg-white/30 relative bg-black">
+    <!-- Main Content Wrapper for Scale Effect -->
+    <div id="app-wrapper" class="flex-1 flex flex-col min-h-screen w-full transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-center">
+        <!-- Cinematic Atmosphere Glow -->
+        <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
         <div class="absolute top-[10%] left-[20%] w-[800px] h-[800px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(234,88,12,1) 0%, rgba(234,88,12,0) 70%);"></div>
         <div class="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(185,28,28,1) 0%, rgba(185,28,28,0) 70%);"></div>
     </div>
@@ -287,10 +289,10 @@
         <p class="text-white/40 text-sm">© 2026 S.KAYFOM STORE. Строго 21+.</p>
     </footer>
 
-    <!-- ORDER MODAL -->
+    <!-- ORDER DRAWER / BOTTOM SHEET -->
     <div id="order-modal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-neutral-900 border border-white/10 p-6 rounded-2xl w-full max-w-md mx-4 transform scale-95 transition-transform duration-300"
+        class="fixed inset-0 z-50 flex items-end md:justify-end md:items-start bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-[#0b0b0d]/95 backdrop-blur-xl border-t md:border-t-0 md:border-l border-white/10 p-6 w-full md:max-w-md max-h-[90vh] md:h-full transform translate-y-full md:translate-y-0 md:translate-x-full transition-transform duration-300 shadow-2xl overflow-y-auto flex flex-col rounded-t-3xl md:rounded-none"
             id="order-modal-content">
 
             <div class="flex justify-between items-start mb-6">
@@ -382,10 +384,13 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Vanilla Tilt for 3D Cards -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
     <!-- CSV Parser (Papaparse CDN) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="js/main.js?v=6" defer></script>
     
-</body>
+    <!-- Close app wrapper -->
+    </div>
 
 </html>

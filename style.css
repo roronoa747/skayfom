@@ -50,32 +50,27 @@ body {
 .glass-card[data-brand*="hell"]:hover {
     box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.15), 0 0 20px rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.4);
-    transform: translateY(-4px);
 }
 
 .glass-card[data-brand*="death punch"]:hover {
     box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.15), 0 0 20px rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.4);
-    transform: translateY(-4px);
 }
 
 .glass-card[data-brand*="aureus"]:hover {
     box-shadow: inset 0 0 40px rgba(250, 204, 21, 0.15), 0 0 20px rgba(250, 204, 21, 0.2);
     border-color: rgba(250, 204, 21, 0.4);
-    transform: translateY(-4px);
 }
 
 .glass-card[data-brand*="sapphire"]:hover {
     box-shadow: inset 0 0 40px rgba(168, 85, 247, 0.15), 0 0 20px rgba(168, 85, 247, 0.2);
     border-color: rgba(168, 85, 247, 0.4);
-    transform: translateY(-4px);
 }
 
 /* Default card hover */
 .glass-card:hover {
     box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.05), 0 0 20px rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-4px);
 }
 
 /* Button & Tab Hovers */
@@ -176,4 +171,16 @@ body {
 .mask-edges {
     mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
     -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+
+/* Scroll Reveal Classes */
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
 }

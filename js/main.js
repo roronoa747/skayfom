@@ -244,6 +244,7 @@ function initDOM() {
     DOM.b2bModal = document.getElementById('b2b-modal');
     DOM.b2bModalContent = document.getElementById('b2b-modal-content');
     DOM.b2bModalClose = document.getElementById('b2b-modal-close');
+    DOM.appWrapper = document.getElementById('app-wrapper');
 }
 
 // 1. Initialization
@@ -269,6 +270,9 @@ function checkAgeGate() {
     const isAdult = localStorage.getItem('skayfom_21plus');
     if (isAdult && DOM.ageGate) {
         DOM.ageGate.style.display = 'none';
+    } else if (DOM.appWrapper && !isAdult) {
+        // Initial state for scale animation if age gate is visible
+        DOM.appWrapper.classList.add('scale-105', 'opacity-50');
     }
 }
 
@@ -606,15 +610,45 @@ function renderCatalog() {
         // Just show the highlights without the banner
     }
 
-    filteredData.forEach(item => {
-        DOM.catalogGrid.appendChild(createCard(item));
+    filteredData.forEach((item, index) => {
+        const card = createCard(item);
+        // Stagger the reveal transition delay for a cascading effect
+        card.style.transitionDelay = `${(index % 12) * 50}ms`;
+        DOM.catalogGrid.appendChild(card);
     });
+
+    initScrollReveal();
+    
+    // Init Vanilla Tilt (only for desktop/mouse to be mobile-first safe)
+    if (window.matchMedia("(hover: hover)").matches && typeof VanillaTilt !== 'undefined') {
+        VanillaTilt.init(document.querySelectorAll(".glass-card"), {
+            max: 8,
+            speed: 400,
+            glare: true,
+            "max-glare": 0.3,
+            scale: 1.02
+        });
+    }
+}
+
+function initScrollReveal() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.remove('reveal-hidden');
+                entry.target.classList.add('reveal-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal-hidden').forEach(el => observer.observe(el));
 }
 
 function createCard(item) {
     const div = document.createElement('div');
     const brandLower = (item.brand || '').toLowerCase().trim();
-    div.className = `glass-card p-4 rounded-2xl flex flex-col h-full relative overflow-hidden default-neon group`;
+    div.className = `glass-card p-4 rounded-2xl flex flex-col h-full relative overflow-hidden default-neon group reveal-hidden`;
     div.setAttribute('data-brand', brandLower);
     
     // Status badge (Strict Keys: in_stock)
@@ -692,6 +726,12 @@ function initEventListeners() {
         DOM.btn18Yes.addEventListener('click', () => {
             localStorage.setItem('skayfom_21plus', 'true');
             DOM.ageGate.classList.add('opacity-0');
+            
+            // Trigger dive-in animation
+            if (DOM.appWrapper) {
+                DOM.appWrapper.classList.remove('scale-105', 'opacity-50');
+            }
+            
             setTimeout(() => {
                 DOM.ageGate.style.display = 'none';
                 triggerSmoke(1500);
@@ -902,14 +942,18 @@ function openOrderModal(item) {
         // slight delay for transition
         setTimeout(() => {
             DOM.orderModal.classList.remove('opacity-0');
-            if (DOM.orderModalContent) DOM.orderModalContent.classList.remove('scale-95');
+            if (DOM.orderModalContent) {
+                DOM.orderModalContent.classList.remove('translate-y-full', 'md:translate-x-full');
+            }
         }, 20);
     }
 }
 
 function closeOrderModal() {
     if (DOM.orderModal) DOM.orderModal.classList.add('opacity-0');
-    if (DOM.orderModalContent) DOM.orderModalContent.classList.add('scale-95');
+    if (DOM.orderModalContent) {
+        DOM.orderModalContent.classList.add('translate-y-full', 'md:translate-x-full');
+    }
     
     setTimeout(() => {
         if (DOM.orderModal) DOM.orderModal.classList.add('hidden');
