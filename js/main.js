@@ -356,6 +356,12 @@ function renderBrandFilters() {
         }
     });
     
+    let preservedScroll = 0;
+    const oldContainer = document.getElementById('brand-marquee-container');
+    if (oldContainer) {
+        preservedScroll = oldContainer.scrollLeft;
+    }
+    
     if (brands.size === 0) {
         DOM.brandFilters.innerHTML = '';
         DOM.brandFilters.classList.add('hidden');
@@ -400,7 +406,12 @@ function renderBrandFilters() {
         });
     });
     
-    initJSMarquee('brand-marquee-container', 0.5);
+    const newContainer = document.getElementById('brand-marquee-container');
+    if (newContainer && preservedScroll > 0) {
+        newContainer.scrollLeft = preservedScroll;
+    }
+    
+    initJSMarquee('brand-marquee-container', activeBrand ? 0 : 0.5);
 }
 
 const VIBE_COLORS = {
@@ -438,6 +449,12 @@ function renderVibeFilters() {
             }
         }
     });
+    
+    let preservedScroll = 0;
+    const oldContainer = document.getElementById('vibe-marquee-container');
+    if (oldContainer) {
+        preservedScroll = oldContainer.scrollLeft;
+    }
     
     if (vibes.size === 0) {
         DOM.vibeFilters.innerHTML = '';
@@ -486,7 +503,12 @@ function renderVibeFilters() {
         });
     });
     
-    initJSMarquee('vibe-marquee-container', -0.5);
+    const newContainer = document.getElementById('vibe-marquee-container');
+    if (newContainer && preservedScroll > 0) {
+        newContainer.scrollLeft = preservedScroll;
+    }
+    
+    initJSMarquee('vibe-marquee-container', activeVibes.size > 0 ? 0 : -0.5);
 }
 
 function renderCatalog() {
