@@ -41,6 +41,8 @@ function initJSMarquee(containerId, speed) {
     let lastFrameTime = performance.now();
     const RESUME_DELAY = 2000; // 2 seconds timer
     
+    let currentSpeed = speed; // Initialize with target speed for smooth acceleration
+    
     function autoScroll(currentTime) {
         let deltaTime = currentTime - lastFrameTime;
         lastFrameTime = currentTime;
@@ -53,16 +55,34 @@ function initJSMarquee(containerId, speed) {
         // Safe hover detection for desktop only
         let isMouseOver = window.matchMedia("(hover: hover)").matches && container.matches(':hover');
         
-        let currentSpeed;
+        let isActivelyDragging = isDown || !isAutoScrolling;
         
-        if (isDown || !isAutoScrolling || isInteracting || isMouseOver) {
+        let targetSpeed = (isActivelyDragging || isInteracting || isMouseOver || speed === 0) ? 0 : speed;
+        
+        if (isActivelyDragging) {
+            // Instant stop if user grabs it physically
             currentSpeed = 0;
-            inner.style.transform = `translateX(0px)`;
         } else {
-            currentSpeed = speed;
+            // Smoothly lerp towards target speed for elegant stopping/starting
+            currentSpeed += (targetSpeed - currentSpeed) * 0.08 * dt;
+        }
+        
+        // Snap to exactly 0 to save processing when fully stopped
+        if (Math.abs(currentSpeed) < 0.001 && targetSpeed === 0) {
+            currentSpeed = 0;
         }
 
         const halfWidth = inner.scrollWidth / 2;
+        
+        // Sync exactScrollLeft with native scroll if user manipulated it via trackpad or touch
+        let expectedIntScroll = Math.floor(exactScrollLeft);
+        if (Math.abs(container.scrollLeft - expectedIntScroll) >= 1 || isActivelyDragging) {
+            exactScrollLeft = container.scrollLeft;
+            // Clear sub-pixel offset if completely stopped to align with native integer scroll
+            if (currentSpeed === 0) {
+                inner.style.transform = `translateX(0px)`;
+            }
+        }
 
         if (currentSpeed !== 0) {
             let moveAmount = currentSpeed * dt;
@@ -78,9 +98,7 @@ function initJSMarquee(containerId, speed) {
             let subPixel = exactScrollLeft - intScroll;
             inner.style.transform = `translateX(${-subPixel}px)`;
         } else {
-            exactScrollLeft = container.scrollLeft;
-            
-            // Also wrap native scrolling so we never hit the walls
+            // Native wrapping when stopped
             // Use strict inequalities (< and >) to prevent violent ping-ponging at exact boundaries (0 and halfWidth)
             if (exactScrollLeft < 0 && halfWidth > 0) {
                 exactScrollLeft += halfWidth;
