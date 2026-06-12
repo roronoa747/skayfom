@@ -34,14 +34,13 @@ function initJSMarquee(containerId, speed) {
     let startX;
     let scrollLeft;
     let isAutoScrolling = true;
-    let lastInteractionTime = 0;
     let exactScrollLeft = container.scrollLeft || 0;
     
-    let currentSpeed = speed;
-    let isHovered = false;
     let hasDragged = false;
     let lastFrameTime = performance.now();
-    const RESUME_DELAY = 800;
+    // Initialize timer on creation so it pauses 2 seconds after a button click re-renders it!
+    let lastInteractionTime = Date.now();
+    const RESUME_DELAY = 2000; // 2 seconds timer
     
     function autoScroll(currentTime) {
         let deltaTime = currentTime - lastFrameTime;
@@ -49,41 +48,48 @@ function initJSMarquee(containerId, speed) {
         
         // Cap deltaTime to avoid huge jumps if tab was inactive
         if (deltaTime > 100) deltaTime = 16.666;
+        let dt = deltaTime / 16.666;
         
-        let dt = deltaTime / 16.666; // 1.0 at 60fps
-        let targetSpeed = speed;
+        let isInteracting = Date.now() - lastInteractionTime < RESUME_DELAY;
+        // Safe hover detection for desktop only
+        let isMouseOver = window.matchMedia("(hover: hover)").matches && container.matches(':hover');
         
-        if (isDown) {
-            targetSpeed = 0;
-            currentSpeed = 0; // immediate stop when dragging
-        } else if (isHovered) {
-            targetSpeed = 0; // gradual stop
-        } else if (!isAutoScrolling || Date.now() - lastInteractionTime < RESUME_DELAY) {
-            targetSpeed = 0;
+        let currentSpeed;
+        
+        if (isDown || !isAutoScrolling || isInteracting || isMouseOver) {
+            currentSpeed = 0;
+            inner.style.transform = `translateX(0px)`;
+        } else {
+            currentSpeed = speed;
         }
 
-        // Apply easing to speed
-        currentSpeed += (targetSpeed - currentSpeed) * 0.05;
-        if (targetSpeed === 0 && Math.abs(currentSpeed) < 0.01) currentSpeed = 0;
+        const halfWidth = inner.scrollWidth / 2;
 
         if (currentSpeed !== 0) {
-            const halfWidth = inner.scrollWidth / 2;
             let moveAmount = currentSpeed * dt;
-            
             exactScrollLeft += moveAmount;
             
-            if (speed > 0) {
-                if (exactScrollLeft >= halfWidth) {
-                    exactScrollLeft -= halfWidth;
-                }
-            } else {
-                if (exactScrollLeft <= 0) {
-                    exactScrollLeft += halfWidth;
-                }
-            }
-            container.scrollLeft = exactScrollLeft;
+            while (exactScrollLeft >= halfWidth && halfWidth > 0) exactScrollLeft -= halfWidth;
+            while (exactScrollLeft < 0 && halfWidth > 0) exactScrollLeft += halfWidth;
+            
+            let intScroll = Math.floor(exactScrollLeft);
+            container.scrollLeft = intScroll;
+            
+            // Sub-pixel transform for perfectly smooth movement regardless of framerate
+            let subPixel = exactScrollLeft - intScroll;
+            inner.style.transform = `translateX(${-subPixel}px)`;
         } else {
             exactScrollLeft = container.scrollLeft;
+            
+            // Also wrap native scrolling so we never hit the walls
+            // Use strict inequalities (< and >) to prevent violent ping-ponging at exact boundaries (0 and halfWidth)
+            if (exactScrollLeft < 0 && halfWidth > 0) {
+                exactScrollLeft += halfWidth;
+                container.scrollLeft = exactScrollLeft;
+            } else if (exactScrollLeft > halfWidth && halfWidth > 0) {
+                exactScrollLeft -= halfWidth;
+                container.scrollLeft = exactScrollLeft;
+            }
         }
         
         activeMarquees[containerId].raf = requestAnimationFrame(autoScroll);
@@ -92,6 +98,13 @@ function initJSMarquee(containerId, speed) {
     activeMarquees[containerId] = {
         raf: requestAnimationFrame(autoScroll)
     };
+    
+    // Desktop hover exit starts the 2-second timer
+    if (window.matchMedia("(hover: hover)").matches) {
+        container.addEventListener('mouseleave', () => {
+            lastInteractionTime = Date.now();
+        });
+    }
     
     container.addEventListener('mousedown', (e) => {
         isDown = true;
@@ -104,21 +117,10 @@ function initJSMarquee(containerId, speed) {
         lastInteractionTime = Date.now();
     });
     
-    container.addEventListener('mouseenter', () => {
-        isHovered = true;
-    });
-    
-    container.addEventListener('mouseleave', () => {
-        isHovered = false;
-        isDown = false;
-        container.classList.remove('cursor-grabbing');
-        container.classList.add('cursor-grab');
-        lastInteractionTime = Date.now();
-    });
-    
     window.addEventListener('mouseup', () => {
         if (isDown) {
             isDown = false;
+            isAutoScrolling = true; // FIX: Re-enable auto-scroll after mouse drag!
             container.classList.remove('cursor-grabbing');
             container.classList.add('cursor-grab');
             lastInteractionTime = Date.now();
@@ -129,11 +131,25 @@ function initJSMarquee(containerId, speed) {
         if (!isDown) return;
         e.preventDefault();
         const x = e.pageX - container.offsetLeft;
-        const walk = (x - startX) * 1.5;
+        const walk = (x - startX) * 1.0;
         if (Math.abs(x - startX) > 5) {
             hasDragged = true;
         }
-        container.scrollLeft = scrollLeft - walk;
+        
+        let targetScroll = scrollLeft - walk;
+        const halfWidth = inner.scrollWidth / 2;
+        
+        // Wrap around manually while dragging!
+        while (targetScroll >= halfWidth && halfWidth > 0) {
+            targetScroll -= halfWidth;
+            scrollLeft -= halfWidth; // adjust snapshot so subsequent mousemove works seamlessly
+        }
+        while (targetScroll < 0 && halfWidth > 0) {
+            targetScroll += halfWidth;
+            scrollLeft += halfWidth;
+        }
+        
+        container.scrollLeft = targetScroll;
         lastInteractionTime = Date.now();
     });
     
@@ -151,14 +167,19 @@ function initJSMarquee(containerId, speed) {
         lastInteractionTime = Date.now();
     }, {passive: true});
     
-    container.addEventListener('touchend', () => {
+    // Also track touchmove to keep resetting timer
+    container.addEventListener('touchmove', () => {
         lastInteractionTime = Date.now();
+    }, {passive: true});
+    
+    container.addEventListener('touchend', () => {
         isAutoScrolling = true;
+        lastInteractionTime = Date.now();
     }, {passive: true});
     
     container.addEventListener('touchcancel', () => {
-        lastInteractionTime = Date.now();
         isAutoScrolling = true;
+        lastInteractionTime = Date.now();
     }, {passive: true});
     
     container.addEventListener('wheel', () => {
@@ -355,7 +376,7 @@ function renderBrandFilters() {
         `;
     });
     
-    let repeatedHtml = innerHtml.repeat(8);
+    let repeatedHtml = innerHtml.repeat(50);
     
     DOM.brandFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
@@ -437,7 +458,7 @@ function renderVibeFilters() {
         `;
     });
     
-    let repeatedHtml = innerHtml.repeat(8);
+    let repeatedHtml = innerHtml.repeat(50);
     
     DOM.vibeFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
