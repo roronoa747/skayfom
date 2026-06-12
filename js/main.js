@@ -471,6 +471,26 @@ const VIBE_COLORS = {
     'холод': 'bg-blue-300 drop-shadow-[0_0_5px_rgba(147,197,253,0.8)]'
 };
 
+const VIBE_RGB_MAP = {
+    'летний': '251, 146, 60',       // orange-400
+    'кислый': '163, 230, 53',       // lime-400
+    'сладкий': '244, 114, 182',     // pink-400
+    'выбор_команды': '56, 189, 248',// sky-400
+    'свежесть': '103, 232, 249',    // cyan-300
+    'ягоды': '168, 85, 247',        // purple-500
+    'лесные ягоды': '244, 63, 94',  // rose-500
+    'десерты': '180, 83, 9',        // amber-700
+    'фрукты': '250, 204, 21',       // yellow-400
+    'напитки': '59, 130, 246',      // blue-500
+    'тропики': '45, 212, 191',      // teal-400
+    'необычный': '217, 70, 239',    // fuchsia-500
+    'цветы': '251, 113, 133',       // rose-400
+    'аренда': '52, 211, 153',       // emerald-400
+    'премиум': '202, 138, 4',       // yellow-600
+    'чайный': '217, 119, 6',        // amber-600
+    'холод': '147, 197, 253'        // blue-300
+};
+
 function renderVibeFilters() {
     if (!DOM.vibeFilters) return;
     
@@ -694,6 +714,18 @@ function createCard(item) {
     const brandLower = (item.brand || '').toLowerCase().trim();
     div.className = `glass-card p-4 rounded-2xl flex flex-col h-full relative overflow-hidden default-neon group reveal-hidden`;
     div.setAttribute('data-brand', brandLower);
+    
+    let vibeColor = '255, 255, 255'; // default white
+    if (item.vibes) {
+        const vibesArray = item.vibes.split(',').map(v => v.trim().toLowerCase());
+        if (vibesArray.length > 0) {
+            const primaryVibe = vibesArray[0];
+            if (VIBE_RGB_MAP[primaryVibe]) {
+                vibeColor = VIBE_RGB_MAP[primaryVibe];
+            }
+        }
+    }
+    div.style.setProperty('--vibe-color', vibeColor);
     
     // Status badge (Strict Keys: in_stock)
     const inStock = String(item.in_stock).toLowerCase() === 'true' || String(item.in_stock).toLowerCase() === 'да';
