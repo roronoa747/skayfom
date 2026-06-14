@@ -394,8 +394,14 @@
             <!-- Delivery Form -->
             <div id="delivery-block" class="mb-6">
                 <label class="block text-sm font-medium text-white/70 mb-2">Адрес доставки</label>
-                <input type="text" id="delivery-address" placeholder="Город, Улица, Дом, Квартира"
-                    class="w-full bg-black border border-white/10 rounded-xl py-3 px-4 text-white placeholder-white/30 focus:outline-none focus:border-white/40 transition-colors">
+                <div class="relative">
+                    <input type="text" id="delivery-address" placeholder="Улица, Дом, Квартира (только Астана)"
+                        class="w-full bg-black border border-white/10 rounded-xl py-3 pl-4 pr-12 text-white placeholder-white/30 focus:outline-none focus:border-white/40 transition-colors">
+                    <button id="btn-detect-location" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-sky-400 transition-colors" title="Определить мой адрес">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
+                </div>
+                <p id="location-error" class="text-red-400 text-xs mt-2 hidden"></p>
             </div>
 
             <!-- Pickup Form -->
@@ -477,6 +483,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
     <!-- CSV Parser (Papaparse CDN) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Yandex Maps API -->
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
     <script src="js/main.js?v=6" defer></script>
     
     <!-- Close app wrapper -->

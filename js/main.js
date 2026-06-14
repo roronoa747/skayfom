@@ -32,12 +32,6 @@ function initJSMarquee(containerId, speed) {
     const inner = container.querySelector('.js-marquee-inner');
     if (!inner) return;
 
-    // Disable JS marquee on mobile to prevent extreme layout thrashing and lag
-    if (window.innerWidth < 768) {
-        // We still let it be a native scrollable container
-        return;
-    }
-
     let isDown = false;
     let startX;
     let scrollLeft;
@@ -258,6 +252,10 @@ function initDOM() {
     DOM.b2bModalContent = document.getElementById('b2b-modal-content');
     DOM.b2bModalClose = document.getElementById('b2b-modal-close');
     DOM.appWrapper = document.getElementById('app-wrapper');
+    
+    // Address Detection
+    DOM.btnDetectLocation = document.getElementById('btn-detect-location');
+    DOM.locationError = document.getElementById('location-error');
 }
 
 // 1. Initialization
@@ -269,6 +267,28 @@ function init() {
         fetchCatalogData();
     } catch (error) {
         console.error("Initialization error:", error);
+    }
+}
+
+let isYandexSuggestInitialized = false;
+
+function initYandexSuggest() {
+    if (isYandexSuggestInitialized) return;
+    
+    if (typeof ymaps !== 'undefined') {
+        ymaps.ready(() => {
+            if (document.getElementById('delivery-address')) {
+                const astanaBounds = [
+                    [51.000000, 71.300000],
+                    [51.300000, 71.600000]
+                ];
+                new ymaps.SuggestView('delivery-address', {
+                    boundedBy: astanaBounds,
+                    strictBounds: true
+                });
+                isYandexSuggestInitialized = true;
+            }
+        });
     }
 }
 
@@ -416,16 +436,14 @@ function renderBrandFilters() {
         `;
     });
     
-    let isMobile = window.innerWidth < 768;
-    // Limit copies to prevent DOM explosion, don't repeat on mobile
-    let repeatedHtml = isMobile ? innerHtml : innerHtml.repeat(3);
+    let repeatedHtml = innerHtml.repeat(3);
     
     DOM.brandFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex ${isMobile ? 'snap-x' : 'cursor-grab'}" id="brand-marquee-container">
-            <div class="flex gap-2 w-max js-marquee-inner px-2 ${isMobile ? 'pr-8' : ''}">
+        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="brand-marquee-container">
+            <div class="flex gap-2 w-max js-marquee-inner px-2">
                 <div class="flex gap-2">${repeatedHtml}</div>
-                ${isMobile ? '' : `<div class="flex gap-2">${repeatedHtml}</div>`}
+                <div class="flex gap-2">${repeatedHtml}</div>
             </div>
         </div>
     `;
@@ -534,16 +552,14 @@ function renderVibeFilters() {
         `;
     });
     
-    let isMobile = window.innerWidth < 768;
-    // Limit copies to prevent DOM explosion, don't repeat on mobile
-    let repeatedHtml = isMobile ? innerHtml : innerHtml.repeat(4);
+    let repeatedHtml = innerHtml.repeat(4);
     
     DOM.vibeFilters.innerHTML = `
         <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex ${isMobile ? 'snap-x' : 'cursor-grab'}" id="vibe-marquee-container">
-            <div class="flex gap-3 w-max js-marquee-inner px-3 ${isMobile ? 'pr-8' : ''}">
+        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="vibe-marquee-container">
+            <div class="flex gap-3 w-max js-marquee-inner px-3">
                 <div class="flex gap-3">${repeatedHtml}</div>
-                ${isMobile ? '' : `<div class="flex gap-3">${repeatedHtml}</div>`}
+                <div class="flex gap-3">${repeatedHtml}</div>
             </div>
         </div>
     `;
@@ -1003,6 +1019,89 @@ function initEventListeners() {
     if (DOM.btnConfirmOrder) DOM.btnConfirmOrder.addEventListener('click', generateWhatsAppLink);
     if (DOM.btnOpenCart) DOM.btnOpenCart.addEventListener('click', openCartDrawer);
     if (DOM.btnFloatingCart) DOM.btnFloatingCart.addEventListener('click', openCartDrawer);
+
+    // Location detection
+    if (DOM.btnDetectLocation) {
+        DOM.btnDetectLocation.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                showLocationError('Геолокация не поддерживается вашим браузером.');
+                return;
+            }
+            
+            DOM.btnDetectLocation.classList.add('animate-pulse');
+            if (DOM.locationError) DOM.locationError.classList.add('hidden');
+            
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        if (typeof ymaps !== 'undefined') {
+                            ymaps.ready(() => {
+                                ymaps.geocode([lat, lon]).then((res) => {
+                                    const firstGeoObject = res.geoObjects.get(0);
+                                    if (firstGeoObject) {
+                                        const address = firstGeoObject.getAddressLine();
+                                        const city = firstGeoObject.getLocalities()[0] || '';
+                                        
+                                        if (city.toLowerCase().includes('астана') || city.toLowerCase().includes('astana') || city.toLowerCase().includes('нур-султан') || address.toLowerCase().includes('астана')) {
+                                            if (DOM.deliveryAddress) DOM.deliveryAddress.value = address;
+                                        } else {
+                                            showLocationError('Доставка работает только по городу Астана. Ваш адрес: ' + city);
+                                        }
+                                    } else {
+                                        showLocationError('Не удалось определить адрес.');
+                                    }
+                                    DOM.btnDetectLocation.classList.remove('animate-pulse');
+                                }).catch(e => {
+                                    fallbackLocationDetection(lat, lon);
+                                });
+                            });
+                        } else {
+                            fallbackLocationDetection(lat, lon);
+                        }
+                    } catch (error) {
+                        showLocationError('Не удалось определить адрес.');
+                        DOM.btnDetectLocation.classList.remove('animate-pulse');
+                    }
+                },
+                (error) => {
+                    showLocationError('Разрешите доступ к геопозиции в настройках браузера.');
+                    DOM.btnDetectLocation.classList.remove('animate-pulse');
+                }
+            );
+        });
+    }
+}
+
+async function fallbackLocationDetection(lat, lon) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ru`);
+        const data = await response.json();
+        const city = data.address.city || data.address.town || data.address.state || '';
+        
+        if (city.toLowerCase().includes('астана') || city.toLowerCase().includes('astana') || city.toLowerCase().includes('нур-султан')) {
+            const road = data.address.road || '';
+            const house = data.address.house_number || '';
+            if (DOM.deliveryAddress) DOM.deliveryAddress.value = `Астана, ${road} ${house}`.trim();
+        } else {
+            showLocationError('Доставка работает только по городу Астана.');
+        }
+    } catch(e) {
+        showLocationError('Не удалось определить адрес.');
+    } finally {
+        if (DOM.btnDetectLocation) DOM.btnDetectLocation.classList.remove('animate-pulse');
+    }
+}
+
+function showLocationError(msg) {
+    if (DOM.locationError) {
+        DOM.locationError.textContent = msg;
+        DOM.locationError.classList.remove('hidden');
+    } else {
+        alert(msg);
+    }
 }
 
 // 6. Cart & Modal Logic
@@ -1129,6 +1228,12 @@ function openCartDrawer() {
     
     if (DOM.orderModal) {
         DOM.orderModal.classList.remove('hidden');
+        
+        // Initialize Yandex Suggest now that the input is visible
+        setTimeout(() => {
+            initYandexSuggest();
+        }, 50);
+
         setTimeout(() => {
             DOM.orderModal.classList.remove('opacity-0');
             if (DOM.orderModalContent) {
@@ -1346,3 +1451,4 @@ function initReviewsSlider() {
 document.addEventListener('DOMContentLoaded', () => {
     initReviewsSlider();
 });
+

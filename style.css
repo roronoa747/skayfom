@@ -171,3 +171,6 @@ body {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* Fix Yandex Suggest Z-Index */
+[class*="ymaps"] { z-index: 99999 !important; }
