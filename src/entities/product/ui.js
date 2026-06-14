@@ -75,9 +75,21 @@ export function createCard(item, onAddToCart, onPreorder) {
 
     const btnAction = div.querySelector('.btn-action');
     if (btnAction) {
+        const originalText = btnAction.innerHTML;
         btnAction.addEventListener('click', () => {
             if (onAddToCart) {
                 onAddToCart(item);
+                
+                // Visual feedback
+                btnAction.innerHTML = 'ДОБАВЛЕНО ✔';
+                btnAction.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
+                btnAction.classList.remove('text-orange-500/60', 'bg-orange-950/20', 'border-orange-500/20');
+                
+                setTimeout(() => {
+                    btnAction.innerHTML = originalText;
+                    btnAction.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500/50');
+                    btnAction.classList.add('text-orange-500/60', 'bg-orange-950/20', 'border-orange-500/20');
+                }, 2000);
             }
         });
     }
