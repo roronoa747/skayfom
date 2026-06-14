@@ -279,23 +279,58 @@ let isYandexSuggestInitialized = false;
 
 function initYandexSuggest() {
     if (isYandexSuggestInitialized) return;
-    
-    if (typeof ymaps !== 'undefined') {
-        ymaps.ready(() => {
-            if (document.getElementById('delivery-address')) {
-                const astanaBounds = [
-                    [51.000000, 71.300000],
-                    [51.300000, 71.600000]
-                ];
-                new ymaps.SuggestView('delivery-address', {
-                    boundedBy: astanaBounds,
-                    provider: 'yandex#map',
-                    results: 5
-                });
-                isYandexSuggestInitialized = true;
-            }
-        });
-    }
+    const addressInput = document.getElementById('delivery-address');
+    if (!addressInput) return;
+
+    const autocompleteContainer = document.createElement('div');
+    autocompleteContainer.className = 'absolute z-50 w-full bg-[#121214] border border-white/10 rounded-xl mt-1 overflow-hidden hidden shadow-2xl';
+    addressInput.parentNode.appendChild(autocompleteContainer);
+
+    let autocompleteTimeout;
+    addressInput.addEventListener('input', (e) => {
+        clearTimeout(autocompleteTimeout);
+        const query = e.target.value.trim();
+        if (query.length < 3) { autocompleteContainer.classList.add('hidden'); return; }
+        
+        autocompleteTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=\u0410\u0441\u0442\u0430\u043d\u0430, ${encodeURIComponent(query)}&addressdetails=1&limit=5&accept-language=ru`);
+                const data = await res.json();
+                
+                if (data && data.length > 0) {
+                    autocompleteContainer.innerHTML = '';
+                    let hasResults = false;
+                    const seen = new Set();
+                    data.forEach(item => {
+                        const dl = item.display_name.toLowerCase();
+                        if (!dl.includes('\u0430\u0441\u0442\u0430\u043d\u0430') && !dl.includes('astana') && !dl.includes('\u043d\u0443\u0440-\u0441\u0443\u043b\u0442\u0430\u043d')) return;
+                        
+                        let street = item.address.road || item.address.residential || '';
+                        let house = item.address.house_number || '';
+                        let dname = `${street} ${house}`.trim();
+                        if (!dname) dname = item.display_name.split(',')[0];
+                        
+                        if (!seen.has(dname)) {
+                            seen.add(dname);
+                            hasResults = true;
+                            const div = document.createElement('div');
+                            div.className = 'p-3 hover:bg-white/10 cursor-pointer text-sm text-white border-b border-white/5 last:border-0';
+                            div.textContent = dname || item.display_name;
+                            div.addEventListener('click', () => { addressInput.value = dname || item.display_name; autocompleteContainer.classList.add('hidden'); });
+                            autocompleteContainer.appendChild(div);
+                        }
+                    });
+                    if (hasResults) autocompleteContainer.classList.remove('hidden');
+                    else autocompleteContainer.classList.add('hidden');
+                } else autocompleteContainer.classList.add('hidden');
+            } catch(err) {}
+        }, 400);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!addressInput.contains(e.target) && !autocompleteContainer.contains(e.target)) autocompleteContainer.classList.add('hidden');
+    });
+    isYandexSuggestInitialized = true;
 }
 
 if (document.readyState === 'loading') {
@@ -1040,44 +1075,14 @@ function initEventListeners() {
             if (DOM.locationError) DOM.locationError.classList.add('hidden');
             
             navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    
-                    try {
-                        if (typeof ymaps !== 'undefined') {
-                            ymaps.ready(() => {
-                                ymaps.geocode([lat, lon]).then((res) => {
-                                    const firstGeoObject = res.geoObjects.get(0);
-                                    if (firstGeoObject) {
-                                        const address = firstGeoObject.getAddressLine();
-                                        const city = firstGeoObject.getLocalities()[0] || '';
-                                        
-                                        if (city.toLowerCase().includes('астана') || city.toLowerCase().includes('astana') || city.toLowerCase().includes('нур-султан') || address.toLowerCase().includes('астана')) {
-                                            if (DOM.deliveryAddress) DOM.deliveryAddress.value = address;
-                                        } else {
-                                            showLocationError('Доставка работает только по городу Астана. Ваш адрес: ' + city);
-                                        }
-                                    } else {
-                                        showLocationError('Не удалось определить адрес.');
-                                    }
-                                    DOM.btnDetectLocation.classList.remove('animate-pulse');
-                                }).catch(e => {
-                                    fallbackLocationDetection(lat, lon);
-                                });
-                            });
-                        } else {
-                            fallbackLocationDetection(lat, lon);
-                        }
-                    } catch (error) {
-                        showLocationError('Не удалось определить адрес.');
-                        DOM.btnDetectLocation.classList.remove('animate-pulse');
-                    }
+                (position) => {
+                    fallbackLocationDetection(position.coords.latitude, position.coords.longitude);
                 },
                 (error) => {
-                    showLocationError('Разрешите доступ к геопозиции в настройках браузера.');
+                    showLocationError('Разрешите доступ к геопозиции или истекло время ожидания.');
                     DOM.btnDetectLocation.classList.remove('animate-pulse');
-                }
+                },
+                { timeout: 10000, maximumAge: 0 }
             );
         });
     }
