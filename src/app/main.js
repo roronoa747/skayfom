@@ -8,6 +8,11 @@ import { cart, addToCart, updateQuantity, removeFromCart, getCartTotal, getCartC
 import { createCartItemElement } from '../entities/cart/ui.js';
 import { VIBE_COLORS, VIBE_RGB_MAP } from '../shared/lib/constants.js';
 
+import { state as filterState, subscribeToFilters, setTab, setSearchQuery, setProductCategory, setStrength } from '../features/filters/model.js';
+import { renderBrandFilters, renderVibeFilters, initStaticFilters } from '../features/filters/ui.js';
+import { initMixBuilderUI } from '../features/mixBuilder/ui.js';
+import { renderCatalog as renderCatalogWidget } from '../widgets/catalog/ui.js';
+
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
 // const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
 // const GOOGLE_SHEET_CSV_URL = 'catalog_template.csv';
@@ -15,14 +20,7 @@ const FALLBACK_CSV = 'catalog_template.csv';
 const WHATSAPP_NUMBER = '+77066458965';
 
 // State
-let catalogData = [];
-let currentTab = 'Магазин'; // Магазин | Аренда
-let searchQuery = '';
-let activeVibes = new Set();
-let activeIngredients = new Set();
-let activeBrand = null;
-let activeStrength = null;
-let activeProductCategory = 'Табаки';
+export let catalogData = [];
 
 // DOM Elements Object (populated on init)
 const DOM = {};
@@ -89,12 +87,19 @@ function init() {
         checkAgeGate();
         initEventListeners();
         subscribeToCart(renderCartUI);
+        
+        subscribeToFilters(() => {
+            renderBrandFilters(catalogData, 'brand-filters');
+            renderVibeFilters(catalogData, 'vibe-filters');
+            renderCatalogWidget(catalogData, filterState, DOM, handleAddToCart);
+        });
+
         loadCatalogData(GOOGLE_SHEET_CSV_URL + '&t=' + new Date().getTime(), FALLBACK_CSV)
             .then(data => {
                 catalogData = data;
-                renderBrandFilters();
-                renderVibeFilters();
-                renderCatalog();
+                renderBrandFilters(catalogData, 'brand-filters');
+                renderVibeFilters(catalogData, 'vibe-filters');
+                renderCatalogWidget(catalogData, filterState, DOM, handleAddToCart);
             })
             .catch(err => {
                 showErrorState();
@@ -102,6 +107,39 @@ function init() {
     } catch (error) {
         console.error("Initialization error:", error);
     }
+}
+
+export function showToast(message) {
+    if (!DOM.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'bg-[#111113]/95 backdrop-blur-xl border border-sky-500/30 text-white px-6 py-4 rounded-xl shadow-[0_10px_30px_rgba(14,165,233,0.15)] flex items-center gap-3 transform translate-y-full opacity-0 transition-all duration-300 pointer-events-auto';
+    toast.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <div>
+            <p class="font-display font-bold text-[10px] tracking-[0.1em] text-white/50 mb-0.5">СТАТУС</p>
+            <p class="font-alt text-sm">${message}</p>
+        </div>
+    `;
+    DOM.toastContainer.appendChild(toast);
+    
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-full', 'opacity-0');
+    });
+    
+    setTimeout(() => {
+        toast.classList.add('translate-y-full', 'opacity-0');
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+function handleAddToCart(item) {
+    addToCart(item);
+    const itemName = item.flavor || item.brand || 'Товар';
+    showToast(`«${itemName}» добавлен в корзину`);
 }
 
 let isYandexSuggestInitialized = false;
@@ -194,305 +232,6 @@ function showErrorState() {
 // 4. Rendering
 // handlePreorder logic was moved to Cart logic
 
-function renderBrandFilters() {
-    if (!DOM.brandFilters) return;
-    
-    // Get unique brands
-    const brands = new Set();
-    catalogData.forEach(item => {
-        if ((item.category === 'Для себя' || item.category === 'Все') && item.type === 'Магазин') {
-            if (activeProductCategory && item.product_category !== activeProductCategory) return;
-            if (item.brand) brands.add(item.brand.trim());
-        }
-    });
-    
-    let preservedScroll = 0;
-    const oldContainer = document.getElementById('brand-marquee-container');
-    if (oldContainer) {
-        preservedScroll = oldContainer.scrollLeft;
-    }
-    
-    if (brands.size === 0) {
-        DOM.brandFilters.innerHTML = '';
-        DOM.brandFilters.classList.add('hidden');
-        return;
-    } else {
-        DOM.brandFilters.classList.remove('hidden');
-    }
-    
-    let innerHtml = '';
-    
-    Array.from(brands).sort().forEach(brand => {
-        const isActive = activeBrand === brand ? 'active bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]' : 'bg-[#111113]/80 text-white/50 border-white/10 hover:text-white/80 hover:bg-white/5';
-        innerHtml += `
-            <button class="brand-btn flex items-center flex-shrink-0 border rounded px-4 py-2 text-[10px] font-display tracking-[0.2em] whitespace-nowrap transition-all ${isActive}" data-brand="${brand}">
-                ${brand}
-            </button>
-        `;
-    });
-    
-    let repeatedHtml = innerHtml.repeat(3);
-    
-    DOM.brandFilters.innerHTML = `
-        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="brand-marquee-container">
-            <div class="flex gap-2 w-max js-marquee-inner px-2">
-                <div class="flex gap-2">${repeatedHtml}</div>
-                <div class="flex gap-2">${repeatedHtml}</div>
-            </div>
-        </div>
-    `;
-    
-    DOM.brandFilters.querySelectorAll('.brand-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const selectedBrand = e.target.dataset.brand;
-            if (activeBrand === selectedBrand) {
-                activeBrand = null;
-            } else {
-                activeBrand = selectedBrand;
-            }
-            renderBrandFilters();
-            renderCatalog();
-        });
-    });
-    
-    const newContainer = document.getElementById('brand-marquee-container');
-    if (newContainer && preservedScroll > 0) {
-        newContainer.scrollLeft = preservedScroll;
-    }
-    
-    initJSMarquee('brand-marquee-container', activeBrand ? 0 : 0.5);
-}
-
-function renderVibeFilters() {
-    if (!DOM.vibeFilters) return;
-    
-    const vibes = new Set();
-    catalogData.forEach(item => {
-        if ((item.category === 'Для себя' || item.category === 'Все') && item.type === currentTab) {
-            if (activeProductCategory && item.product_category !== activeProductCategory) return;
-            if (item.vibes) {
-                item.vibes.split(',').forEach(v => {
-                    const vibe = v.trim().toLowerCase();
-                    if (vibe) vibes.add(vibe);
-                });
-            }
-        }
-    });
-    
-    let preservedScroll = 0;
-    const oldContainer = document.getElementById('vibe-marquee-container');
-    if (oldContainer) {
-        preservedScroll = oldContainer.scrollLeft;
-    }
-    
-    if (vibes.size === 0) {
-        DOM.vibeFilters.innerHTML = '';
-        DOM.vibeFilters.classList.add('hidden');
-        return;
-    } else {
-        DOM.vibeFilters.classList.remove('hidden');
-    }
-    
-    let innerHtml = '';
-    
-    Array.from(vibes).sort().forEach(vibe => {
-        const colorClass = VIBE_COLORS[vibe] || 'bg-zinc-300 drop-shadow-[0_0_5px_rgba(212,212,216,0.8)]';
-        const isActive = activeVibes.has(vibe) ? 'active bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)] border-white/30' : 'bg-[#111113]/80 text-white/50 border-white/10 hover:text-white/80 hover:bg-white/5';
-        innerHtml += `
-            <button class="vibe-btn flex items-center gap-2 flex-shrink-0 border rounded-full px-4 py-2 text-[10px] font-display tracking-[0.2em] whitespace-nowrap transition-all ${isActive}" data-vibe="${vibe}">
-                <span class="w-1.5 h-1.5 rounded-full ${colorClass}"></span>
-                ${vibe.toUpperCase().replace('_', ' ')}
-            </button>
-        `;
-    });
-    
-    let repeatedHtml = innerHtml.repeat(4);
-    
-    DOM.vibeFilters.innerHTML = `
-        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
-        <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="vibe-marquee-container">
-            <div class="flex gap-3 w-max js-marquee-inner px-3">
-                <div class="flex gap-3">${repeatedHtml}</div>
-                <div class="flex gap-3">${repeatedHtml}</div>
-            </div>
-        </div>
-    `;
-    
-    DOM.vibeFilters.querySelectorAll('.vibe-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const btnTarget = e.currentTarget;
-            const selectedVibe = btnTarget.dataset.vibe;
-            if (activeVibes.has(selectedVibe)) {
-                activeVibes.delete(selectedVibe);
-            } else {
-                activeVibes.add(selectedVibe);
-            }
-            renderVibeFilters();
-            renderCatalog();
-        });
-    });
-    
-    const newContainer = document.getElementById('vibe-marquee-container');
-    if (newContainer && preservedScroll > 0) {
-        newContainer.scrollLeft = preservedScroll;
-    }
-    
-    initJSMarquee('vibe-marquee-container', activeVibes.size > 0 ? 0 : -0.5);
-}
-
-function renderCatalog() {
-    if (!DOM.catalogGrid) return;
-    DOM.catalogGrid.innerHTML = '';
-    
-    let filteredData = catalogData.filter(item => {
-        // Must be for B2C
-        if (item.category !== 'Для себя' && item.category !== 'Все') return false;
-        
-        // Filter by Tab (Купить/Аренда)
-        if (item.type !== currentTab) return false;
-        
-        // Filter by Product Category
-        if (activeProductCategory) {
-            if (item.product_category !== activeProductCategory) return false;
-        }
-
-        // Filter by Search
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            const brandMatch = (item.brand || '').toLowerCase().includes(query);
-            const flavorMatch = (item.flavor || '').toLowerCase().includes(query);
-            const descMatch = (item.description || '').toLowerCase().includes(query);
-            if (!brandMatch && !flavorMatch && !descMatch) return false;
-        }
-
-        // Filter by Selected Brand
-        if (activeBrand) {
-            if ((item.brand || '').trim() !== activeBrand) return false;
-        }
-        
-        // Filter by Vibes
-        if (activeVibes.size > 0) {
-            const itemVibes = (item.vibes || '').toLowerCase().split(',').map(v => v.trim());
-            const hasVibe = Array.from(activeVibes).some(vibe => itemVibes.includes(vibe));
-            if (!hasVibe) return false;
-        }
-
-        // Filter by Strength
-        if (activeStrength) {
-            if (String(item.strength) !== activeStrength) return false;
-        }
-        
-        // Filter by Ingredients (Mix Builder)
-        if (activeIngredients.size > 0) {
-             const itemVibes = (item.vibes || '').toLowerCase().split(',').map(v => v.trim());
-             const itemDesc = (item.description || '').toLowerCase();
-             const itemFlavor = (item.flavor || '').toLowerCase();
-
-             const hasIngredient = Array.from(activeIngredients).every(ing => {
-                 if (ing === 'цитрусы') {
-                     return itemVibes.includes('кислый') || 
-                            itemDesc.includes('цитрус') || itemFlavor.includes('цитрус') ||
-                            itemDesc.includes('лимон') || itemFlavor.includes('лимон') ||
-                            itemDesc.includes('апельсин') || itemFlavor.includes('апельсин') ||
-                            itemDesc.includes('грейпфрут') || itemFlavor.includes('грейпфрут') ||
-                            itemDesc.includes('лайм') || itemFlavor.includes('лайм') ||
-                            itemDesc.includes('мандарин') || itemFlavor.includes('мандарин');
-                 }
-                 return itemVibes.includes(ing);
-             });
-             if (!hasIngredient) return false;
-        }
-
-        return true;
-    });
-
-    // HIGHLIGHTS LOGIC
-    let isHighlightsMode = false;
-    if (currentTab === 'Магазин' && !activeBrand && activeVibes.size === 0 && !activeStrength && !searchQuery && activeIngredients.size === 0) {
-        isHighlightsMode = true;
-        // Limit to 12 random highlights for display
-        filteredData = [...filteredData].sort(() => 0.5 - Math.random()).slice(0, 12);
-    }
-
-    if (DOM.customMixPrompt) {
-        if (activeIngredients.size > 0 && filteredData.length === 0) {
-            DOM.customMixPrompt.classList.remove('hidden');
-        } else {
-            DOM.customMixPrompt.classList.add('hidden');
-        }
-    }
-
-    if (filteredData.length === 0) {
-        DOM.catalogGrid.innerHTML = '<div class="col-span-full py-20 text-center text-white/50">Ничего не найдено. Попробуйте изменить фильтры.</div>';
-        return;
-    }
-
-    if (isHighlightsMode) {
-        // Just show the highlights without the banner
-    }
-
-    function showToast(message) {
-        if (!DOM.toastContainer) return;
-        const toast = document.createElement('div');
-        toast.className = 'bg-[#111113]/95 backdrop-blur-xl border border-sky-500/30 text-white px-6 py-4 rounded-xl shadow-[0_10px_30px_rgba(14,165,233,0.15)] flex items-center gap-3 transform translate-y-full opacity-0 transition-all duration-300 pointer-events-auto';
-        toast.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <div>
-                <p class="font-display font-bold text-[10px] tracking-[0.1em] text-white/50 mb-0.5">УСПЕШНО</p>
-                <p class="font-alt text-sm">${message}</p>
-            </div>
-        `;
-        DOM.toastContainer.appendChild(toast);
-        
-        requestAnimationFrame(() => {
-            toast.classList.remove('translate-y-full', 'opacity-0');
-        });
-        
-        setTimeout(() => {
-            toast.classList.add('translate-y-full', 'opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    function handleAddToCart(item) {
-        addToCart(item);
-        const itemName = item.flavor || item.brand || 'Товар';
-        showToast(`«${itemName}» добавлен в корзину`);
-    }
-
-    filteredData.forEach((item, index) => {
-        const card = createCard(item, handleAddToCart);
-        // Stagger the reveal transition delay for a cascading effect
-        card.style.transitionDelay = `${(index % 12) * 50}ms`;
-        DOM.catalogGrid.appendChild(card);
-    });
-
-    // Use a small timeout to let the DOM settle before observing, prevents layout thrashing
-    setTimeout(() => {
-        initScrollReveal();
-        
-        // Init Vanilla Tilt (strictly desktop only, prevents iOS Safari GPU crash)
-        if (window.innerWidth >= 1024 && window.matchMedia("(hover: hover)").matches && window.matchMedia("(pointer: fine)").matches && typeof VanillaTilt !== 'undefined') {
-            const cards = Array.from(document.querySelectorAll(".glass-card:not(.tilt-initialized)"));
-            if (cards.length > 0) {
-                cards.forEach(c => c.classList.add('tilt-initialized'));
-                VanillaTilt.init(cards, {
-                    max: 8,
-                    speed: 400,
-                    glare: true,
-                    "max-glare": 0.3,
-                    scale: 1.02,
-                    gyroscope: false
-                });
-            }
-        }
-    }, 50);
-}
-
-// 5. Events & Interactivity
 function initEventListeners() {
     // Age Gate Buttons
     if (DOM.btn18Yes && DOM.ageGate) {
@@ -518,137 +257,29 @@ function initEventListeners() {
         });
     }
 
-    // Product Categories
-    if (DOM.catBtns) {
-        DOM.catBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                DOM.catBtns.forEach(b => {
-                    b.classList.remove('active', 'border-b-2', 'border-sky-400', 'text-white');
-                    b.classList.add('border', 'border-white/5', 'text-white/50', 'hover:text-white');
-                });
-                e.target.classList.remove('border', 'border-white/5', 'text-white/50', 'hover:text-white');
-                e.target.classList.add('active', 'border-b-2', 'border-sky-400', 'text-white');
-                
-                const selectedCat = e.target.dataset.cat;
-                console.log('Selected Category:', selectedCat);
-                activeProductCategory = selectedCat;
-                
-                // Clear sub-filters when switching root categories
-                activeBrand = null;
-                activeVibes.clear();
-                
-                renderBrandFilters();
-                renderVibeFilters();
-                renderCatalog();
-            });
-        });
-    }
-
-    // Tabs
-    if (DOM.tabBtns) {
-        DOM.tabBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                DOM.tabBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                currentTab = e.target.dataset.type;
-                
-                if (DOM.mixBuilderContainer) {
-                    if (currentTab === 'Аренда') {
-                        DOM.mixBuilderContainer.style.display = 'none';
-                    } else {
-                        DOM.mixBuilderContainer.style.display = 'block';
-                    }
-                }
-                
-                renderCatalog();
-            });
-        });
-    }
-    // Search
-    if (DOM.searchInput) {
-        DOM.searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value;
-            renderCatalog();
-        });
-    }
-
-    // Strength
-    if (DOM.strengthBtns) {
-        DOM.strengthBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const strength = e.currentTarget.dataset.strength;
-                if (activeStrength === strength) {
-                    activeStrength = null;
+    
+    initStaticFilters(DOM, {
+        onTabChange: (tab) => {
+            setTab(tab);
+            if (DOM.mixBuilderContainer) {
+                if (tab === 'Аренда') {
+                    DOM.mixBuilderContainer.style.display = 'none';
                 } else {
-                    activeStrength = strength;
+                    DOM.mixBuilderContainer.style.display = 'block';
                 }
-                
-                DOM.strengthBtns.forEach(b => {
-                    const s = b.dataset.strength;
-                    if (activeStrength && parseInt(s) <= parseInt(activeStrength)) {
-                        b.classList.remove('grayscale', 'opacity-30');
-                        b.classList.add('opacity-100', 'drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]');
-                    } else {
-                        b.classList.add('grayscale', 'opacity-30');
-                        b.classList.remove('opacity-100', 'drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]');
-                    }
-                });
-                
-                renderCatalog();
-            });
-        });
-    }
-
-    // Ingredients
-    if (DOM.ingredientBtns) {
-        DOM.ingredientBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const tag = e.target.dataset.tag;
-                if (activeIngredients.has(tag)) {
-                    activeIngredients.delete(tag);
-                    e.target.classList.remove('active');
-                } else {
-                    if (activeIngredients.size >= 3) {
-                        alert('Можно выбрать не более 3-х ингредиентов');
-                        return;
-                    }
-                    activeIngredients.add(tag);
-                    e.target.classList.add('active');
-                }
-                renderCatalog();
-            });
-        });
-    }
-
-    // Custom Mix Button
-    if (DOM.btnCustomMix) {
-        DOM.btnCustomMix.addEventListener('click', () => {
-            const ingredientsText = Array.from(activeIngredients).join(', ');
-            const text = `Привет! Я с сайта S.KAYFOM STORE. Хочу создать кастомный микс. Мои предпочтения: ${ingredientsText}.`;
-            const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-            window.open(waLink, '_blank');
-        });
-    }
-
-    // Mix Builder Dropdown Toggle
-    if (DOM.btnToggleMix && DOM.mixBuilder) {
-        DOM.btnToggleMix.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isClosed = DOM.mixBuilder.classList.contains('opacity-0');
-            if (isClosed) {
-                DOM.mixBuilder.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-            } else {
-                DOM.mixBuilder.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
             }
-        });
-        
-        // Close on click outside
-        document.addEventListener('click', (e) => {
-            if (!DOM.mixBuilder.contains(e.target)) {
-                DOM.mixBuilder.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-            }
-        });
-    }
+        },
+        onSearch: (q) => setSearchQuery(q),
+        onCategoryChange: (cat) => setProductCategory(cat),
+        onStrengthChange: (s) => setStrength(s)
+    });
+
+    initMixBuilderUI(DOM, {
+        WHATSAPP_NUMBER,
+        onIngredientToggle: () => {
+            renderCatalogWidget(catalogData, filterState, DOM, handleAddToCart);
+        }
+    });
 
     // B2B Modal
     if (DOM.btnB2b && DOM.b2bModal && DOM.b2bModalClose) {
