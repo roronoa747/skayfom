@@ -2,12 +2,12 @@ export function createCartItemElement(c, onUpdateQuantity, onRemove) {
     const div = document.createElement('div');
     div.className = 'flex items-center gap-4 bg-white/5 p-3 rounded-xl border border-white/5';
     
-    const imagePath = c.item.media_url ? c.item.media_url.replace(/^images\//, '') : '';
-    const imageSrc = imagePath ? `./images/${imagePath}` : './images/logo.png';
+    const imagePath = c.item.media_url ? c.item.media_url.replace(/^images\//, '') : `catalog/${c.item.id}.png`;
+    const imageSrc = `./images/${imagePath}`;
     
     div.innerHTML = `
         <div class="w-16 h-16 bg-black/50 rounded-lg flex items-center justify-center p-2">
-            <img src="${imageSrc}" class="w-full h-full object-contain" alt="">
+            <img src="${imageSrc}" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='./images/logo.png';">
         </div>
         <div class="flex-1">
             <div class="text-xs text-white/50">${c.item.brand}</div>
