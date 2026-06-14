@@ -39,7 +39,7 @@ export function createCard(item, onAddToCart, onPreorder) {
     }
 
     const imagePath = item.media_url ? item.media_url.replace(/^images\//, '') : `catalog/${item.id}.png`;
-    const imageSrc = `./images/${imagePath}`;
+    const imageSrc = `${import.meta.env.BASE_URL}images/${imagePath}`;
     const imageClass = 'w-4/5 h-4/5 object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110';
     const logoClass = 'w-1/2 h-1/2 object-contain opacity-20 mix-blend-screen relative z-10 transition-transform duration-700 ease-out group-hover:scale-105';
 
@@ -54,7 +54,7 @@ export function createCard(item, onAddToCart, onPreorder) {
              <div class="absolute top-0 left-0 w-[150%] h-[150%] pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style="background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%);"></div>
              <div class="absolute bottom-0 right-0 w-[150%] h-[150%] pointer-events-none transform translate-x-1/4 translate-y-1/4" style="background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);"></div>
              
-             <img src="${imageSrc}" loading="lazy" class="${imageClass}" alt="${item.flavor}" onerror="this.onerror=null; this.src='./images/logo.png'; this.className='${logoClass}';">
+             <img src="${imageSrc}" loading="lazy" class="${imageClass}" alt="${item.flavor}" onerror="this.onerror=null; this.src='${import.meta.env.BASE_URL}images/logo.png'; this.className='${logoClass}';">
              
              <div class="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent z-20 pointer-events-none"></div>
         </div>

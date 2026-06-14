@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: './', // Use relative paths for assets
+  base: '/skayfom/', // Use absolute base path for GitHub Pages
   server: {
     port: 5173,
     open: true
