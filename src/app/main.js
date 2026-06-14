@@ -805,7 +805,7 @@ function createCard(item) {
         `;
     }
 
-    const imageSrc = item.media_url ? `public/${item.media_url}` : 'public/images/logo.png';
+    const imageSrc = item.media_url ? `public/${item.media_url}` : '/images/logo.png';
     const imageClass = item.media_url 
         ? 'w-4/5 h-4/5 object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110' 
         : 'w-1/2 h-1/2 object-contain opacity-20 mix-blend-screen relative z-10 transition-transform duration-700 ease-out group-hover:scale-105';
@@ -1182,10 +1182,10 @@ function showToast(item) {
     const toast = document.createElement('div');
     toast.className = 'bg-[#111113]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl flex items-center gap-4 transform translate-y-full opacity-0 transition-all duration-500';
     
-    const imgSrc = item.media_url ? `public/${item.media_url}` : 'public/images/logo.png';
+    const imgSrc = item.media_url ? `public/${item.media_url}` : '/images/logo.png';
     toast.innerHTML = `
         <div class="w-10 h-10 bg-black rounded border border-white/5 p-1 shrink-0">
-            <img src="${imgSrc}" class="w-full h-full object-contain" onerror="this.src='public/images/logo.png'">
+            <img src="${imgSrc}" class="w-full h-full object-contain" onerror="this.src='/images/logo.png'">
         </div>
         <div class="flex-1">
             <p class="text-[10px] text-sky-400 font-display tracking-widest mb-0.5">ДОБАВЛЕНО</p>
@@ -1279,7 +1279,7 @@ function renderCartUI() {
     cart.forEach(c => {
         grandTotal += c.price * c.quantity;
         const item = c.item;
-        const imgSrc = item.media_url ? `public/${item.media_url}` : 'public/images/logo.png';
+        const imgSrc = item.media_url ? `public/${item.media_url}` : '/images/logo.png';
         const badgeText = item.type === 'Аренда' ? 'Аренда' : 'Покупка';
         const priceText = c.price > 0 ? `${c.price.toLocaleString('ru-RU')} ₸` : 'Уточняется';
         
@@ -1292,7 +1292,7 @@ function renderCartUI() {
             </button>
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 bg-[#050507] rounded-lg border border-white/5 flex items-center justify-center p-2 relative overflow-hidden shrink-0">
-                    <img src="${imgSrc}" class="w-full h-full object-contain relative z-10" onerror="this.src='public/images/logo.png'">
+                    <img src="${imgSrc}" class="w-full h-full object-contain relative z-10" onerror="this.src='/images/logo.png'">
                 </div>
                 <div class="pr-8">
                     <h4 class="text-[9px] text-neutral-500 font-display tracking-[0.2em] uppercase mb-1">${item.brand || 'S.KAYFOM'}</h4>

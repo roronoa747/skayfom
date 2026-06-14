@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>S.KAYFOM STORE</title>
     <meta name="description" content="Интерактивный промо-каталог табачной продукции и услуг аренды.">
-    <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,9 +49,7 @@
 </head>
 
 <body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden selection:bg-white/30 relative bg-black">
-    <!-- Main Content Wrapper for Scale Effect -->
-    <div id="app-wrapper" class="flex-1 flex flex-col min-h-screen w-full transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-center">
-        <!-- Cinematic Atmosphere Glow -->
+    <!-- Cinematic Atmosphere Glow -->
         <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
         <div class="absolute top-[10%] left-[20%] w-[800px] h-[800px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(234,88,12,1) 0%, rgba(234,88,12,0) 70%);"></div>
         <div class="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(185,28,28,1) 0%, rgba(185,28,28,0) 70%);"></div>
@@ -62,7 +60,7 @@
         class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-opacity duration-700">
         <!-- Logo placeholder -->
         <div class="mb-12 relative w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center">
-            <img src="public/images/logo.png" alt="S.KAYFOM STORE"
+            <img src="/images/logo.png" alt="S.KAYFOM STORE"
                 class="w-full h-full object-contain logo-glow edge-fade"
                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIiBmaWxsPSJ3aGl0ZSI+PHRleHQgeD0iNTAiIHk9IjEwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiPkxPR088L3RleHQ+PC9zdmc+'">
         </div>
@@ -91,6 +89,9 @@
         </div>
     </div>
 
+    <!-- Main Content Wrapper for Scale Effect -->
+    <div id="app-wrapper" class="flex-1 flex flex-col min-h-screen w-full transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-center">
+
     <!-- HEADER & NAVIGATION -->
     <header id="main-header" class="relative md:sticky md:top-0 z-30 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-2 md:pb-4 transition-all duration-500 ease-in-out will-change-transform">
         <!-- Base Blur & Background -->
@@ -108,7 +109,7 @@
 
                 <!-- Authentic Signboard Logo -->
                 <div class="flex items-center gap-3 md:gap-4 cursor-default select-none">
-                    <img src="public/images/logo.png" alt="S.KAYFOM"
+                    <img src="/images/logo.png" alt="S.KAYFOM"
                         class="w-16 h-16 md:w-24 md:h-24 object-contain mix-blend-screen relative z-10"
                         onerror="this.style.display='none'">
                     <!-- Text -->
@@ -249,14 +250,14 @@
                     <div class="grid grid-cols-2 gap-4 h-[calc(100%-3rem)]" id="instagram-feed">
                         <!-- Photo 1 -->
                         <a href="https://www.instagram.com/s.kayfom_store/" target="_blank" class="w-full aspect-[4/5] bg-white/5 rounded-xl border border-white/10 overflow-hidden relative group block">
-                            <img src="public/images/insta1.png" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
+                            <img src="/images/insta1.png" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-end p-4">
                                 <span class="text-sm font-medium flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> Смотреть</span>
                             </div>
                         </a>
                         <!-- Photo 2 -->
                         <a href="https://www.instagram.com/s.kayfom_store/" target="_blank" class="w-full aspect-[4/5] bg-white/5 rounded-xl border border-white/10 overflow-hidden relative group block">
-                            <img src="public/images/insta2.png" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
+                            <img src="/images/insta2.png" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-end p-4">
                                 <span class="text-sm font-medium flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> Смотреть</span>
                             </div>
@@ -350,6 +351,8 @@
     <footer class="bg-black py-8 border-t border-white/10 text-center">
         <p class="text-white/40 text-sm">© 2026 S.KAYFOM STORE. Строго 21+.</p>
     </footer>
+    <!-- Close app wrapper -->
+    </div>
 
     <!-- ORDER DRAWER / BOTTOM SHEET -->
     <div id="order-modal"
@@ -490,10 +493,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <!-- Yandex Maps API -->
     <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
-    <script src="js/main.js?v=6" defer></script>
-    
-    <!-- Close app wrapper -->
-    </div>
+    <script type="module" src="/src/app/main.js"></script>
 
 </html>
 
