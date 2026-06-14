@@ -76,10 +76,8 @@ export function createCard(item, onAddToCart, onPreorder) {
     const btnAction = div.querySelector('.btn-action');
     if (btnAction) {
         btnAction.addEventListener('click', () => {
-            if (inStock && onAddToCart) {
+            if (onAddToCart) {
                 onAddToCart(item);
-            } else if (!inStock && onPreorder) {
-                onPreorder(item);
             }
         });
     }

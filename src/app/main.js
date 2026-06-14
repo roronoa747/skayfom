@@ -192,11 +192,7 @@ function showErrorState() {
 }
 
 // 4. Rendering
-function handlePreorder(item) {
-    const text = 'Здравствуйте! Хочу узнать когда поступит в наличие:\n' + item.brand + ' - ' + item.flavor;
-    const url = 'https://wa.me/' + WHATSAPP_NUMBER.replace(/\D/g, '') + '?text=' + encodeURIComponent(text);
-    window.open(url, '_blank');
-}
+// handlePreorder logic was moved to Cart logic
 
 function renderBrandFilters() {
     if (!DOM.brandFilters) return;
@@ -437,7 +433,7 @@ function renderCatalog() {
     }
 
     filteredData.forEach((item, index) => {
-        const card = createCard(item, addToCart, handlePreorder);
+        const card = createCard(item, addToCart);
         // Stagger the reveal transition delay for a cascading effect
         card.style.transitionDelay = `${(index % 12) * 50}ms`;
         DOM.catalogGrid.appendChild(card);
@@ -784,6 +780,11 @@ function renderCartUI() {
         const badgeText = item.type === 'Аренда' ? 'Аренда' : 'Покупка';
         const priceText = c.price > 0 ? `${c.price.toLocaleString('ru-RU')} ₸` : 'Уточняется';
         
+        const inStock = String(item.in_stock).toLowerCase() === 'true' || String(item.in_stock).toLowerCase() === 'да';
+        const priceTextHtml = inStock 
+            ? `<span class="font-alt font-bold text-sm text-sky-400">${c.price > 0 ? `${(c.price * c.quantity).toLocaleString('ru-RU')} ₸` : 'Уточняется'}</span>`
+            : `<div class="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 mt-1 rounded text-center leading-tight">Предзаказ</div>`;
+        
         const div = document.createElement('div');
         div.className = 'bg-[#111113]/80 border border-white/10 rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden shrink-0';
         div.innerHTML = `
@@ -807,8 +808,8 @@ function renderCartUI() {
                     <button class="btn-qty-plus px-4 py-2 text-white/50 hover:text-white hover:bg-white/10 transition-colors font-bold text-lg leading-none select-none touch-manipulation">+</button>
                 </div>
                 <div class="text-right">
-                    <span class="text-[9px] text-white/40 block mb-0.5 font-display tracking-[0.2em]">ЦЕНА</span>
-                    <span class="font-alt font-bold text-sm text-sky-400">${priceText}</span>
+                    <span class="text-[9px] text-white/40 block font-display tracking-[0.2em]">ЦЕНА</span>
+                    ${priceTextHtml}
                 </div>
             </div>
         `;
@@ -876,8 +877,10 @@ function generateWhatsAppLink() {
             
             const badge = item.type === 'Аренда' ? 'Аренда' : 'Магазин';
             const str = item.strength ? `(Крепость: ${item.strength}) ` : '';
-            text += `${index + 1}. [${badge}] ${item.brand || 'S.KAYFOM'} - ${item.flavor || ''} ${str}(x${c.quantity})`;
-            if (c.price > 0) text += ` = ${lineTotal.toLocaleString('ru-RU')} ₸`;
+            const inStock = String(item.in_stock).toLowerCase() === 'true' || String(item.in_stock).toLowerCase() === 'да';
+            const preorderText = !inStock ? ' [Предзаказ / Сообщить при поступлении]' : '';
+            text += `${index + 1}. [${badge}] ${item.brand || 'S.KAYFOM'} - ${item.flavor || ''} ${str}(x${c.quantity})${preorderText}`;
+            if (c.price > 0 && inStock) text += ` = ${lineTotal.toLocaleString('ru-RU')} ₸`;
             text += `\n`;
         });
         
