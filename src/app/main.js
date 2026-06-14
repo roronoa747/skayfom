@@ -779,7 +779,7 @@ function renderCartUI() {
     cart.forEach(c => {
         grandTotal += c.price * c.quantity;
         const item = c.item;
-        const imgSrc = item.media_url ? `public/${item.media_url}` : '/images/logo.png';
+        const imgSrc = item.media_url ? `./images/${item.media_url}` : './images/logo.png';
         const badgeText = item.type === 'Аренда' ? 'Аренда' : 'Покупка';
         const priceText = c.price > 0 ? `${c.price.toLocaleString('ru-RU')} ₸` : 'Уточняется';
         
@@ -792,7 +792,7 @@ function renderCartUI() {
             </button>
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 bg-[#050507] rounded-lg border border-white/5 flex items-center justify-center p-2 relative overflow-hidden shrink-0">
-                    <img src="${imgSrc}" class="w-full h-full object-contain relative z-10" onerror="this.src='/images/logo.png'">
+                    <img src="${imgSrc}" class="w-full h-full object-contain relative z-10" onerror="this.src='./images/logo.png'">
                 </div>
                 <div class="pr-8">
                     <h4 class="text-[9px] text-neutral-500 font-display tracking-[0.2em] uppercase mb-1">${item.brand || 'S.KAYFOM'}</h4>

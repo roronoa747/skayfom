@@ -2,7 +2,7 @@ export function createCartItemElement(c, onUpdateQuantity, onRemove) {
     const div = document.createElement('div');
     div.className = 'flex items-center gap-4 bg-white/5 p-3 rounded-xl border border-white/5';
     
-    const imageSrc = c.item.media_url ? `/images/${c.item.media_url}` : '/images/logo.png';
+    const imageSrc = c.item.media_url ? `./images/${c.item.media_url}` : './images/logo.png';
     
     div.innerHTML = `
         <div class="w-16 h-16 bg-black/50 rounded-lg flex items-center justify-center p-2">
