@@ -1,4 +1,4 @@
-// S.KAYFOM STORE - Main Logic
+﻿// S.KAYFOM STORE - Main Logic
 
 // const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
 const GOOGLE_SHEET_CSV_URL = 'catalog_template.csv';
@@ -252,6 +252,8 @@ function initDOM() {
     DOM.b2bModalContent = document.getElementById('b2b-modal-content');
     DOM.b2bModalClose = document.getElementById('b2b-modal-close');
     DOM.appWrapper = document.getElementById('app-wrapper');
+    DOM.btnDetectLocation = document.getElementById('btn-detect-location');
+    DOM.locationError = document.getElementById('location-error');
     
     // Address Detection
     DOM.btnDetectLocation = document.getElementById('btn-detect-location');
@@ -1020,6 +1022,33 @@ function initEventListeners() {
     if (DOM.btnOpenCart) DOM.btnOpenCart.addEventListener('click', openCartDrawer);
     if (DOM.btnFloatingCart) DOM.btnFloatingCart.addEventListener('click', openCartDrawer);
 
+    if (DOM.btnDetectLocation) {
+        DOM.btnDetectLocation.addEventListener('click', () => {
+            if (!navigator.geolocation) { alert('\u0413\u0435\u043e\u043b\u043e\u043a\u0430\u0446\u0438\u044f \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f'); return; }
+            DOM.btnDetectLocation.classList.add('animate-pulse');
+            if (DOM.locationError) DOM.locationError.classList.add('hidden');
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ru`);
+                    const data = await res.json();
+                    const city = data.address.city || data.address.town || data.address.state || '';
+                    if (city.toLowerCase().includes('\u0430\u0441\u0442\u0430\u043d\u0430') || city.toLowerCase().includes('astana') || city.toLowerCase().includes('\u043d\u0443\u0440-\u0441\u0443\u043b\u0442\u0430\u043d')) {
+                        const road = data.address.road || '';
+                        const house = data.address.house_number || '';
+                        if (DOM.deliveryAddress) DOM.deliveryAddress.value = `\u0410\u0441\u0442\u0430\u043d\u0430, ${road} ${house}`.trim();
+                    } else {
+                        if (DOM.locationError) { DOM.locationError.textContent = '\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430 \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e \u0433\u043e\u0440\u043e\u0434\u0443 \u0410\u0441\u0442\u0430\u043d\u0430. \u0412\u0430\u0448 \u0432\u044b\u0431\u043e\u0440: ' + city; DOM.locationError.classList.remove('hidden'); }
+                    }
+                } catch(e) {}
+                DOM.btnDetectLocation.classList.remove('animate-pulse');
+            }, (err) => {
+                DOM.btnDetectLocation.classList.remove('animate-pulse');
+            });
+        });
+    }
+
     // Location detection
     if (DOM.btnDetectLocation) {
         DOM.btnDetectLocation.addEventListener('click', () => {
@@ -1228,6 +1257,7 @@ function openCartDrawer() {
     
     if (DOM.orderModal) {
         DOM.orderModal.classList.remove('hidden');
+        if (typeof initYandexSuggest !== 'undefined') setTimeout(initYandexSuggest, 50);
         
         // Initialize Yandex Suggest now that the input is visible
         setTimeout(() => {
@@ -1452,3 +1482,103 @@ document.addEventListener('DOMContentLoaded', () => {
     initReviewsSlider();
 });
 
+
+
+
+let customAutocompleteInitialized = false;
+function initYandexSuggest() {
+    if (customAutocompleteInitialized) return;
+    const addressInput = document.getElementById('delivery-address');
+    if (!addressInput) return;
+
+    const autocompleteContainer = document.createElement('div');
+    autocompleteContainer.className = 'absolute z-50 w-full bg-[#121214] border border-white/10 rounded-xl mt-1 overflow-hidden hidden shadow-2xl';
+    addressInput.parentNode.appendChild(autocompleteContainer);
+
+    let autocompleteTimeout;
+    addressInput.addEventListener('input', (e) => {
+        clearTimeout(autocompleteTimeout);
+        const query = e.target.value.trim();
+        if (query.length < 3) { autocompleteContainer.classList.add('hidden'); return; }
+        
+        autocompleteTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=\u0410\u0441\u0442\u0430\u043d\u0430, ${encodeURIComponent(query)}&addressdetails=1&limit=5&accept-language=ru`);
+                const data = await res.json();
+                
+                if (data && data.length > 0) {
+                    autocompleteContainer.innerHTML = '';
+                    let hasResults = false;
+                    data.forEach(item => {
+                        const dl = item.display_name.toLowerCase();
+                        if (!dl.includes('\u0430\u0441\u0442\u0430\u043d\u0430') && !dl.includes('astana') && !dl.includes('\u043d\u0443\u0440-\u0441\u0443\u043b\u0442\u0430\u043d')) return;
+                        hasResults = true;
+                        const div = document.createElement('div');
+                        div.className = 'p-3 hover:bg-white/10 cursor-pointer text-sm text-white border-b border-white/5 last:border-0';
+                        let street = item.address.road || item.address.residential || '';
+                        let house = item.address.house_number || '';
+                        let dname = `${street} ${house}`.trim();
+                        if (!dname) dname = item.display_name.split(',')[0];
+                        div.textContent = dname || item.display_name;
+                        div.addEventListener('click', () => { addressInput.value = dname || item.display_name; autocompleteContainer.classList.add('hidden'); });
+                        autocompleteContainer.appendChild(div);
+                    });
+                    if (hasResults) autocompleteContainer.classList.remove('hidden');
+                    else autocompleteContainer.classList.add('hidden');
+                } else autocompleteContainer.classList.add('hidden');
+            } catch(err) {}
+        }, 400);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!addressInput.contains(e.target) && !autocompleteContainer.contains(e.target)) autocompleteContainer.classList.add('hidden');
+    });
+    customAutocompleteInitialized = true;
+}
+
+let deliveryMap = null;
+let deliveryPlacemark = null;
+
+function initDeliveryMap() {
+    if (typeof ymaps === 'undefined') return;
+    ymaps.ready(() => {
+        const container = document.getElementById('delivery-map-container');
+        if (!container) return;
+        const btnToggleMap = document.getElementById('btn-toggle-map');
+        if (btnToggleMap) {
+            btnToggleMap.addEventListener('click', () => {
+                if (container.classList.contains('hidden')) {
+                    container.classList.remove('hidden');
+                    if (!deliveryMap) {
+                        deliveryMap = new ymaps.Map('delivery-map', { center: [51.128207, 71.430411], zoom: 13, controls: ['zoomControl'] });
+                        deliveryMap.events.add('click', function (e) {
+                            var coords = e.get('coords');
+                            updateAddressFromCoords(coords[0], coords[1]);
+                        });
+                    }
+                } else { container.classList.add('hidden'); }
+            });
+        }
+    });
+}
+
+function updateAddressFromCoords(lat, lon) {
+    if (deliveryPlacemark) { deliveryPlacemark.geometry.setCoordinates([lat, lon]); }
+    else { deliveryPlacemark = new ymaps.Placemark([lat, lon], {}, { preset: 'islands#redDotIcon' }); deliveryMap.geoObjects.add(deliveryPlacemark); }
+    
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ru`).then(r=>r.json()).then(data => {
+        const city = data.address.city || data.address.town || data.address.state || '';
+        if (city.toLowerCase().includes('\u0430\u0441\u0442\u0430\u043d\u0430') || city.toLowerCase().includes('astana') || city.toLowerCase().includes('\u043d\u0443\u0440-\u0441\u0443\u043b\u0442\u0430\u043d')) {
+            const road = data.address.road || '';
+            const house = data.address.house_number || '';
+            if (document.getElementById('delivery-address')) document.getElementById('delivery-address').value = `\u0410\u0441\u0442\u0430\u043d\u0430, ${road} ${house}`.trim();
+            if (document.getElementById('location-error')) document.getElementById('location-error').classList.add('hidden');
+        } else {
+            if (document.getElementById('location-error')) { document.getElementById('location-error').textContent = '\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430 \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e \u0433\u043e\u0440\u043e\u0434\u0443 \u0410\u0441\u0442\u0430\u043d\u0430. \u0412\u0430\u0448 \u0432\u044b\u0431\u043e\u0440: ' + city; document.getElementById('location-error').classList.remove('hidden'); }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initDeliveryMap, 1000);
+});
