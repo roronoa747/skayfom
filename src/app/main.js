@@ -4,8 +4,8 @@ import { triggerSmoke } from '../shared/ui/loader.js';
 import { initScrollReveal } from '../shared/ui/scroll.js';
 import { loadCatalogData } from '../shared/api/catalog.js';
 
-// const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
-const GOOGLE_SHEET_CSV_URL = 'catalog_template.csv';
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
+// const GOOGLE_SHEET_CSV_URL = 'catalog_template.csv';
 const FALLBACK_CSV = 'catalog_template.csv';
 const WHATSAPP_NUMBER = '+77066458965';
 
@@ -85,7 +85,7 @@ function init() {
         initDOM();
         checkAgeGate();
         initEventListeners();
-        loadCatalogData(GOOGLE_SHEET_CSV_URL, FALLBACK_CSV)
+        loadCatalogData(GOOGLE_SHEET_CSV_URL + '&t=' + new Date().getTime(), FALLBACK_CSV)
             .then(data => {
                 catalogData = data;
                 renderBrandFilters();
