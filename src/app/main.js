@@ -1,4 +1,8 @@
 // S.KAYFOM STORE - Main Logic
+import { initJSMarquee } from '../shared/ui/marquee.js';
+import { triggerSmoke } from '../shared/ui/loader.js';
+import { initScrollReveal } from '../shared/ui/scroll.js';
+import { loadCatalogData } from '../shared/api/catalog.js';
 
 // const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
 const GOOGLE_SHEET_CSV_URL = 'catalog_template.csv';
@@ -16,194 +20,6 @@ let activeStrength = null;
 let activeProductCategory = 'Табаки';
 let cart = []; // Array of { item, quantity, price, cartId }
 let cartIdCounter = 0;
-
-// Global map for marquees
-const activeMarquees = {};
-let globalMarqueeInteractionTime = 0;
-
-function initJSMarquee(containerId, speed) {
-    if (activeMarquees[containerId]) {
-        cancelAnimationFrame(activeMarquees[containerId].raf);
-    }
-    
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    const inner = container.querySelector('.js-marquee-inner');
-    if (!inner) return;
-
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-    let isAutoScrolling = true;
-    let exactScrollLeft = container.scrollLeft || 0;
-    
-    let hasDragged = false;
-    let lastFrameTime = performance.now();
-    const RESUME_DELAY = 2000; // 2 seconds timer
-    
-    let currentSpeed = speed; // Initialize with target speed for smooth acceleration
-    
-    function autoScroll(currentTime) {
-        let deltaTime = currentTime - lastFrameTime;
-        lastFrameTime = currentTime;
-        
-        // Cap deltaTime to avoid huge jumps if tab was inactive
-        if (deltaTime > 100) deltaTime = 16.666;
-        let dt = deltaTime / 16.666;
-        
-        let isInteracting = Date.now() - globalMarqueeInteractionTime < RESUME_DELAY;
-        // Safe hover detection for desktop only
-        let isMouseOver = window.matchMedia("(hover: hover)").matches && container.matches(':hover');
-        
-        let isActivelyDragging = isDown || !isAutoScrolling;
-        
-        let targetSpeed = (isActivelyDragging || isInteracting || isMouseOver || speed === 0) ? 0 : speed;
-        
-        if (isActivelyDragging) {
-            // Instant stop if user grabs it physically
-            currentSpeed = 0;
-        } else {
-            // Smoothly lerp towards target speed for elegant stopping/starting
-            currentSpeed += (targetSpeed - currentSpeed) * 0.08 * dt;
-        }
-        
-        // Snap to exactly 0 to save processing when fully stopped
-        if (Math.abs(currentSpeed) < 0.001 && targetSpeed === 0) {
-            currentSpeed = 0;
-        }
-
-        const halfWidth = inner.scrollWidth / 2;
-        
-        // Sync exactScrollLeft with native scroll if user manipulated it via trackpad or touch
-        let expectedIntScroll = Math.floor(exactScrollLeft);
-        if (Math.abs(container.scrollLeft - expectedIntScroll) >= 1 || isActivelyDragging) {
-            exactScrollLeft = container.scrollLeft;
-            // Clear sub-pixel offset if completely stopped to align with native integer scroll
-            if (currentSpeed === 0 && inner.style.transform !== 'translateX(0px)') {
-                inner.style.transform = `translateX(0px)`;
-            }
-        }
-
-        if (currentSpeed !== 0) {
-            let moveAmount = currentSpeed * dt;
-            exactScrollLeft += moveAmount;
-            
-            while (exactScrollLeft >= halfWidth && halfWidth > 0) exactScrollLeft -= halfWidth;
-            while (exactScrollLeft < 0 && halfWidth > 0) exactScrollLeft += halfWidth;
-            
-            let intScroll = Math.floor(exactScrollLeft);
-            container.scrollLeft = intScroll;
-            
-            // Sub-pixel transform for perfectly smooth movement regardless of framerate
-            let subPixel = exactScrollLeft - intScroll;
-            inner.style.transform = `translateX(${-subPixel}px)`;
-        } else {
-            // Native wrapping when stopped
-            // Use strict inequalities (< and >) to prevent violent ping-ponging at exact boundaries (0 and halfWidth)
-            if (exactScrollLeft < 0 && halfWidth > 0) {
-                exactScrollLeft += halfWidth;
-                if (container.scrollLeft !== exactScrollLeft) container.scrollLeft = exactScrollLeft;
-            } else if (exactScrollLeft > halfWidth && halfWidth > 0) {
-                exactScrollLeft -= halfWidth;
-                if (container.scrollLeft !== exactScrollLeft) container.scrollLeft = exactScrollLeft;
-            }
-        }
-        
-        activeMarquees[containerId].raf = requestAnimationFrame(autoScroll);
-    }
-    
-    activeMarquees[containerId] = {
-        raf: requestAnimationFrame(autoScroll)
-    };
-    
-    // Desktop hover exit starts the 2-second timer
-    if (window.matchMedia("(hover: hover)").matches) {
-        container.addEventListener('mouseleave', () => {
-            globalMarqueeInteractionTime = Date.now();
-        });
-    }
-    
-    container.addEventListener('mousedown', (e) => {
-        isDown = true;
-        hasDragged = false;
-        container.classList.add('cursor-grabbing');
-        container.classList.remove('cursor-grab');
-        startX = e.pageX - container.offsetLeft;
-        scrollLeft = container.scrollLeft;
-        isAutoScrolling = false;
-        globalMarqueeInteractionTime = Date.now();
-    });
-    
-    window.addEventListener('mouseup', () => {
-        if (isDown) {
-            isDown = false;
-            isAutoScrolling = true; // FIX: Re-enable auto-scroll after mouse drag!
-            container.classList.remove('cursor-grabbing');
-            container.classList.add('cursor-grab');
-            globalMarqueeInteractionTime = Date.now();
-        }
-    });
-    
-    container.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - container.offsetLeft;
-        const walk = (x - startX) * 1.0;
-        if (Math.abs(x - startX) > 5) {
-            hasDragged = true;
-        }
-        
-        let targetScroll = scrollLeft - walk;
-        const halfWidth = inner.scrollWidth / 2;
-        
-        // Wrap around manually while dragging!
-        while (targetScroll >= halfWidth && halfWidth > 0) {
-            targetScroll -= halfWidth;
-            scrollLeft -= halfWidth; // adjust snapshot so subsequent mousemove works seamlessly
-        }
-        while (targetScroll < 0 && halfWidth > 0) {
-            targetScroll += halfWidth;
-            scrollLeft += halfWidth;
-        }
-        
-        container.scrollLeft = targetScroll;
-        globalMarqueeInteractionTime = Date.now();
-    });
-    
-    // Prevent accidental clicks after dragging
-    container.addEventListener('click', (e) => {
-        if (hasDragged) {
-            e.preventDefault();
-            e.stopPropagation();
-            hasDragged = false;
-        }
-    }, { capture: true });
-    
-    container.addEventListener('touchstart', () => {
-        isAutoScrolling = false;
-        globalMarqueeInteractionTime = Date.now();
-    }, {passive: true});
-    
-    // Also track touchmove to keep resetting timer
-    container.addEventListener('touchmove', () => {
-        globalMarqueeInteractionTime = Date.now();
-    }, {passive: true});
-    
-    container.addEventListener('touchend', () => {
-        isAutoScrolling = true;
-        globalMarqueeInteractionTime = Date.now();
-    }, {passive: true});
-    
-    container.addEventListener('touchcancel', () => {
-        isAutoScrolling = true;
-        globalMarqueeInteractionTime = Date.now();
-    }, {passive: true});
-    
-    container.addEventListener('wheel', () => {
-        globalMarqueeInteractionTime = Date.now();
-    }, {passive: true});
-}
 
 // DOM Elements Object (populated on init)
 const DOM = {};
@@ -269,7 +85,16 @@ function init() {
         initDOM();
         checkAgeGate();
         initEventListeners();
-        fetchCatalogData();
+        loadCatalogData(GOOGLE_SHEET_CSV_URL, FALLBACK_CSV)
+            .then(data => {
+                catalogData = data;
+                renderBrandFilters();
+                renderVibeFilters();
+                renderCatalog();
+            })
+            .catch(err => {
+                showErrorState();
+            });
     } catch (error) {
         console.error("Initialization error:", error);
     }
@@ -350,84 +175,7 @@ function checkAgeGate() {
     }
 }
 
-function triggerSmoke(duration = 1500) {
-    if (!DOM.smokeLoader) return;
-    
-    DOM.smokeLoader.classList.remove('hidden');
-    
-    // Allow display to apply before opacity transition
-    setTimeout(() => {
-        DOM.smokeLoader.classList.remove('opacity-0');
-        DOM.smokeLoader.classList.add('opacity-100');
-    }, 50);
-    
-    setTimeout(() => {
-        DOM.smokeLoader.classList.remove('opacity-100');
-        DOM.smokeLoader.classList.add('opacity-0');
-        setTimeout(() => {
-            DOM.smokeLoader.classList.add('hidden');
-        }, 500); // Wait for CSS opacity transition
-    }, duration);
-}
-
 // 3. Data Fetching with Error Handling (Rule 5)
-async function fetchCatalogData() {
-    try {
-        Papa.parse(GOOGLE_SHEET_CSV_URL, {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                if (results.errors && results.errors.length > 0) {
-                    console.warn("Google Sheet parsing warning:", results.errors);
-                }
-                if (results.data && results.data.length > 0) {
-                    catalogData = results.data;
-                    renderBrandFilters();
-                    renderVibeFilters();
-                    renderCatalog();
-                } else {
-                    fetchFallback();
-                }
-            },
-            error: function(err) {
-                console.error("Network error fetching Google Sheet:", err);
-                fetchFallback();
-            }
-        });
-    } catch(e) {
-        console.error("Exception during Google Sheet fetch:", e);
-        fetchFallback();
-    }
-}
-
-function fetchFallback() {
-    try {
-        Papa.parse(FALLBACK_CSV, {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                if (results.data) {
-                    catalogData = results.data;
-                    renderBrandFilters();
-                    renderVibeFilters();
-                    renderCatalog();
-                } else {
-                    showErrorState();
-                }
-            },
-            error: function(err) {
-                console.error("Failed to load fallback CSV:", err);
-                showErrorState();
-            }
-        });
-    } catch(e) {
-        console.error("Exception during fallback fetch:", e);
-        showErrorState();
-    }
-}
-
 function showErrorState() {
     if (DOM.catalogGrid) {
         DOM.catalogGrid.innerHTML = `
@@ -745,26 +493,6 @@ function renderCatalog() {
             }
         }
     }, 50);
-}
-
-let scrollObserver = null;
-
-function initScrollReveal() {
-    if (scrollObserver) {
-        scrollObserver.disconnect();
-    }
-    
-    scrollObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.remove('reveal-hidden');
-                entry.target.classList.add('reveal-visible');
-                scrollObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.05 });
-
-    document.querySelectorAll('.reveal-hidden').forEach(el => scrollObserver.observe(el));
 }
 
 function createCard(item) {
