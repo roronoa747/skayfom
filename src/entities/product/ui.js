@@ -38,7 +38,8 @@ export function createCard(item, onAddToCart, onPreorder) {
         `;
     }
 
-    const imageSrc = item.media_url ? `./images/${item.media_url}` : './images/logo.png';
+    const imagePath = item.media_url ? item.media_url.replace(/^images\//, '') : '';
+    const imageSrc = imagePath ? `./images/${imagePath}` : './images/logo.png';
     const imageClass = item.media_url 
         ? 'w-4/5 h-4/5 object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110' 
         : 'w-1/2 h-1/2 object-contain opacity-20 mix-blend-screen relative z-10 transition-transform duration-700 ease-out group-hover:scale-105';

@@ -779,7 +779,8 @@ function renderCartUI() {
     cart.forEach(c => {
         grandTotal += c.price * c.quantity;
         const item = c.item;
-        const imgSrc = item.media_url ? `./images/${item.media_url}` : './images/logo.png';
+        const imagePath = item.media_url ? item.media_url.replace(/^images\//, '') : '';
+        const imgSrc = imagePath ? `./images/${imagePath}` : './images/logo.png';
         const badgeText = item.type === 'Аренда' ? 'Аренда' : 'Покупка';
         const priceText = c.price > 0 ? `${c.price.toLocaleString('ru-RU')} ₸` : 'Уточняется';
         
