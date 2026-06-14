@@ -3,8 +3,13 @@ import { initJSMarquee } from '../shared/ui/marquee.js';
 import { triggerSmoke } from '../shared/ui/loader.js';
 import { initScrollReveal } from '../shared/ui/scroll.js';
 import { loadCatalogData } from '../shared/api/catalog.js';
+import { createCard } from '../entities/product/ui.js';
+import { cart, addToCart, updateQuantity, removeFromCart, getCartTotal, getCartCount, subscribeToCart } from '../entities/cart/model.js';
+import { createCartItemElement } from '../entities/cart/ui.js';
+import { VIBE_COLORS, VIBE_RGB_MAP } from '../shared/lib/constants.js';
 
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
+// const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
 // const GOOGLE_SHEET_CSV_URL = 'catalog_template.csv';
 const FALLBACK_CSV = 'catalog_template.csv';
 const WHATSAPP_NUMBER = '+77066458965';
@@ -18,8 +23,6 @@ let activeIngredients = new Set();
 let activeBrand = null;
 let activeStrength = null;
 let activeProductCategory = 'Табаки';
-let cart = []; // Array of { item, quantity, price, cartId }
-let cartIdCounter = 0;
 
 // DOM Elements Object (populated on init)
 const DOM = {};
@@ -85,6 +88,7 @@ function init() {
         initDOM();
         checkAgeGate();
         initEventListeners();
+        subscribeToCart(renderCartUI);
         loadCatalogData(GOOGLE_SHEET_CSV_URL + '&t=' + new Date().getTime(), FALLBACK_CSV)
             .then(data => {
                 catalogData = data;
@@ -188,6 +192,12 @@ function showErrorState() {
 }
 
 // 4. Rendering
+function handlePreorder(item) {
+    const text = 'Здравствуйте! Хочу узнать когда поступит в наличие:\n' + item.brand + ' - ' + item.flavor;
+    const url = 'https://wa.me/' + WHATSAPP_NUMBER.replace(/\D/g, '') + '?text=' + encodeURIComponent(text);
+    window.open(url, '_blank');
+}
+
 function renderBrandFilters() {
     if (!DOM.brandFilters) return;
     
@@ -257,46 +267,6 @@ function renderBrandFilters() {
     
     initJSMarquee('brand-marquee-container', activeBrand ? 0 : 0.5);
 }
-
-const VIBE_COLORS = {
-    'летний': 'bg-orange-400 drop-shadow-[0_0_5px_rgba(251,146,60,0.8)]',
-    'кислый': 'bg-lime-400 drop-shadow-[0_0_5px_rgba(163,230,53,0.8)]',
-    'сладкий': 'bg-pink-400 drop-shadow-[0_0_5px_rgba(244,114,182,0.8)]',
-    'выбор_команды': 'bg-sky-400 drop-shadow-[0_0_5px_rgba(56,189,248,0.8)]',
-    'свежесть': 'bg-cyan-300 drop-shadow-[0_0_5px_rgba(103,232,249,0.8)]',
-    'ягоды': 'bg-purple-500 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]',
-    'лесные ягоды': 'bg-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.8)]',
-    'десерты': 'bg-amber-700 drop-shadow-[0_0_5px_rgba(180,83,9,0.8)]',
-    'фрукты': 'bg-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]',
-    'напитки': 'bg-blue-500 drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]',
-    'тропики': 'bg-teal-400 drop-shadow-[0_0_5px_rgba(45,212,191,0.8)]',
-    'необычный': 'bg-fuchsia-500 drop-shadow-[0_0_5px_rgba(217,70,239,0.8)]',
-    'цветы': 'bg-rose-400 drop-shadow-[0_0_5px_rgba(251,113,133,0.8)]',
-    'аренда': 'bg-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]',
-    'премиум': 'bg-yellow-600 drop-shadow-[0_0_5px_rgba(202,138,4,0.8)]',
-    'чайный': 'bg-amber-600 drop-shadow-[0_0_5px_rgba(217,119,6,0.8)]',
-    'холод': 'bg-blue-300 drop-shadow-[0_0_5px_rgba(147,197,253,0.8)]'
-};
-
-const VIBE_RGB_MAP = {
-    'летний': '251, 146, 60',       // orange-400
-    'кислый': '163, 230, 53',       // lime-400
-    'сладкий': '244, 114, 182',     // pink-400
-    'выбор_команды': '56, 189, 248',// sky-400
-    'свежесть': '103, 232, 249',    // cyan-300
-    'ягоды': '168, 85, 247',        // purple-500
-    'лесные ягоды': '244, 63, 94',  // rose-500
-    'десерты': '180, 83, 9',        // amber-700
-    'фрукты': '250, 204, 21',       // yellow-400
-    'напитки': '59, 130, 246',      // blue-500
-    'тропики': '45, 212, 191',      // teal-400
-    'необычный': '217, 70, 239',    // fuchsia-500
-    'цветы': '251, 113, 133',       // rose-400
-    'аренда': '52, 211, 153',       // emerald-400
-    'премиум': '202, 138, 4',       // yellow-600
-    'чайный': '217, 119, 6',        // amber-600
-    'холод': '147, 197, 253'        // blue-300
-};
 
 function renderVibeFilters() {
     if (!DOM.vibeFilters) return;
@@ -467,7 +437,7 @@ function renderCatalog() {
     }
 
     filteredData.forEach((item, index) => {
-        const card = createCard(item);
+        const card = createCard(item, addToCart, handlePreorder);
         // Stagger the reveal transition delay for a cascading effect
         card.style.transitionDelay = `${(index % 12) * 50}ms`;
         DOM.catalogGrid.appendChild(card);
@@ -493,91 +463,6 @@ function renderCatalog() {
             }
         }
     }, 50);
-}
-
-function createCard(item) {
-    const div = document.createElement('div');
-    const brandLower = (item.brand || '').toLowerCase().trim();
-    div.className = `glass-card p-4 rounded-2xl flex flex-col h-full relative overflow-hidden default-neon group reveal-hidden`;
-    div.setAttribute('data-brand', brandLower);
-    
-    let vibeColor = '255, 255, 255'; // default white
-    if (item.vibes) {
-        const vibesArray = item.vibes.split(',').map(v => v.trim().toLowerCase());
-        if (vibesArray.length > 0) {
-            const primaryVibe = vibesArray[0];
-            if (VIBE_RGB_MAP[primaryVibe]) {
-                vibeColor = VIBE_RGB_MAP[primaryVibe];
-            }
-        }
-    }
-    div.style.setProperty('--vibe-color', vibeColor);
-    
-    // Status badge (Strict Keys: in_stock)
-    const inStock = String(item.in_stock).toLowerCase() === 'true' || String(item.in_stock).toLowerCase() === 'да';
-    const badgeColor = inStock ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400';
-    const badgeText = inStock ? 'В наличии' : 'Предзаказ';
-
-    // Strength (Hookah Icons)
-    let strengthDots = '';
-    const strengthVal = parseInt(item.strength) || 0;
-    const hookahSVG = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><rect x="10" y="2" width="4" height="3" rx="1"></rect><rect x="8" y="5" width="8" height="1.5" rx="0.5"></rect><rect x="11" y="6.5" width="2" height="6"></rect><path d="M13 11.5l3-1.5 1.5 1.5-3 1.5z"></path><path d="M10.5 12.5h3l3.5 8.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1l3.5-8.5z"></path></svg>`;
-    
-    if (strengthVal > 0 && strengthVal <= 3) {
-        strengthDots = `
-            <div class="flex items-center gap-1 mt-3" title="Крепость: ${strengthVal}/3">
-                <span class="${strengthVal >= 1 ? 'opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] text-white' : 'opacity-20 grayscale text-white'}">${hookahSVG}</span>
-                <span class="${strengthVal >= 2 ? 'opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] text-white' : 'opacity-20 grayscale text-white'}">${hookahSVG}</span>
-                <span class="${strengthVal >= 3 ? 'opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] text-white' : 'opacity-20 grayscale text-white'}">${hookahSVG}</span>
-            </div>
-        `;
-    }
-
-    const imageSrc = item.media_url ? `public/${item.media_url}` : '/images/logo.png';
-    const imageClass = item.media_url 
-        ? 'w-4/5 h-4/5 object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110' 
-        : 'w-1/2 h-1/2 object-contain opacity-20 mix-blend-screen relative z-10 transition-transform duration-700 ease-out group-hover:scale-105';
-
-    div.innerHTML = `
-        <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded ${badgeColor} border border-current/20 z-30">
-            ${badgeText}
-        </div>
-        
-        <div class="mb-4 aspect-square bg-[#050507] rounded-xl flex items-center justify-center overflow-hidden border border-white/5 relative">
-             <!-- Subtle Dot Grid -->
-             <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 12px 12px;"></div>
-             
-             <!-- Cyberpunk/Neon Spotlights (Optimized for Mobile GPU, NO blur() or mix-blend) -->
-             <div class="absolute top-0 left-0 w-[150%] h-[150%] pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style="background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%);"></div>
-             <div class="absolute bottom-0 right-0 w-[150%] h-[150%] pointer-events-none transform translate-x-1/4 translate-y-1/4" style="background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);"></div>
-             
-             <!-- Image -->
-             <img src="${imageSrc}" loading="lazy" class="${imageClass}" alt="${item.flavor}">
-             
-             <!-- Grounding Shadow -->
-             <div class="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent z-20 pointer-events-none"></div>
-        </div>
-        
-        <div class="flex-1 flex flex-col relative z-20">
-            <h3 class="text-[10px] text-neutral-500 font-display tracking-[0.3em] uppercase mb-1">${item.brand}</h3>
-            <h2 class="text-xl font-alt font-black text-white mb-2 uppercase">${item.flavor}</h2>
-            <p class="text-xs text-white/50 mb-4 line-clamp-2 font-alt font-light leading-relaxed">${item.description || ''}</p>
-            
-            <div class="mt-auto flex flex-col gap-4">
-                ${strengthDots}
-                <button class="w-full py-3 rounded-lg text-xs font-display tracking-[0.2em] transition-all duration-500 border border-orange-500/20 bg-orange-950/20 text-orange-500/60 shadow-[0_0_10px_rgba(234,88,12,0.1)] group-hover:border-orange-500/40 group-hover:text-orange-400 group-hover:shadow-[0_0_20px_rgba(234,88,12,0.2)] hover:!bg-gradient-to-r hover:!from-orange-500 hover:!to-red-600 hover:!border-orange-400 hover:!text-white hover:!shadow-[0_0_40px_rgba(239,68,68,0.8),inset_0_0_20px_rgba(255,255,255,0.5)] btn-add-cart">
-                    В КОРЗИНУ
-                </button>
-            </div>
-        </div>
-    `;
-
-    const btnAddCart = div.querySelector('.btn-add-cart');
-    if (btnAddCart) {
-        btnAddCart.addEventListener('click', () => addToCart(item));
-    }
-
-    return div;
 }
 
 // 5. Events & Interactivity
@@ -846,119 +731,6 @@ function showLocationError(msg) {
 }
 
 // 6. Cart & Modal Logic
-function addToCart(item) {
-    let itemPrice = item.price ? parseInt(String(item.price).replace(/\D/g, '')) : 0;
-    if (isNaN(itemPrice)) itemPrice = 0;
-
-    const existingIndex = cart.findIndex(c => c.item.brand === item.brand && c.item.flavor === item.flavor && c.item.type === item.type);
-    
-    if (existingIndex > -1) {
-        cart[existingIndex].quantity += 1;
-    } else {
-        cart.push({
-            cartId: cartIdCounter++,
-            item: item,
-            quantity: 1,
-            price: itemPrice
-        });
-    }
-
-    updateCartBadge();
-    showToast(item);
-    renderCartUI();
-}
-
-function updateCartBadge() {
-    const totalItems = cart.reduce((sum, c) => sum + c.quantity, 0);
-    
-    // Header Badge
-    if (DOM.cartBadge) {
-        DOM.cartBadge.textContent = totalItems;
-        if (totalItems > 0) {
-            DOM.cartBadge.classList.remove('scale-0');
-            DOM.cartBadge.classList.add('scale-100');
-        } else {
-            DOM.cartBadge.classList.remove('scale-100');
-            DOM.cartBadge.classList.add('scale-0');
-        }
-    }
-    
-    // Floating Mobile Badge
-    if (DOM.floatingCartBadge) {
-        DOM.floatingCartBadge.textContent = totalItems;
-        if (totalItems > 0) {
-            DOM.floatingCartBadge.classList.remove('scale-0');
-            DOM.floatingCartBadge.classList.add('scale-100');
-        } else {
-            DOM.floatingCartBadge.classList.remove('scale-100');
-            DOM.floatingCartBadge.classList.add('scale-0');
-        }
-    }
-    
-    // Floating Mobile Button Visibility
-    if (DOM.btnFloatingCart) {
-        if (totalItems > 0) {
-            DOM.btnFloatingCart.classList.remove('hidden');
-        } else {
-            DOM.btnFloatingCart.classList.add('hidden');
-        }
-    }
-}
-
-function showToast(item) {
-    if (!DOM.toastContainer) return;
-    const toast = document.createElement('div');
-    toast.className = 'bg-[#111113]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl flex items-center gap-4 transform translate-y-full opacity-0 transition-all duration-500';
-    
-    const imgSrc = item.media_url ? `public/${item.media_url}` : '/images/logo.png';
-    toast.innerHTML = `
-        <div class="w-10 h-10 bg-black rounded border border-white/5 p-1 shrink-0">
-            <img src="${imgSrc}" class="w-full h-full object-contain" onerror="this.src='/images/logo.png'">
-        </div>
-        <div class="flex-1">
-            <p class="text-[10px] text-sky-400 font-display tracking-widest mb-0.5">ДОБАВЛЕНО</p>
-            <p class="text-sm font-alt font-bold leading-tight line-clamp-1">${item.brand} - ${item.flavor}</p>
-        </div>
-    `;
-    
-    DOM.toastContainer.appendChild(toast);
-    
-    // Dismiss on click
-    toast.addEventListener('click', () => {
-        toast.classList.add('translate-y-full', 'opacity-0');
-        setTimeout(() => toast.remove(), 500);
-    });
-    
-    requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-full', 'opacity-0');
-    });
-    
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.classList.add('translate-y-full', 'opacity-0');
-            setTimeout(() => {
-                if (toast.parentNode) toast.remove();
-            }, 500);
-        }
-    }, 3000);
-}
-
-function removeFromCart(cartId) {
-    cart = cart.filter(c => c.cartId !== cartId);
-    updateCartBadge();
-    renderCartUI();
-}
-
-function updateQuantity(cartId, delta) {
-    const cartItem = cart.find(c => c.cartId === cartId);
-    if (cartItem) {
-        cartItem.quantity += delta;
-        if (cartItem.quantity < 1) cartItem.quantity = 1;
-        if (cartItem.quantity > 99) cartItem.quantity = 99;
-        updateCartBadge();
-        renderCartUI();
-    }
-}
 
 function openCartDrawer() {
     renderCartUI();
