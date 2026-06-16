@@ -169,13 +169,23 @@ function initYandexSuggest() {
                     let hasResults = false;
                     const seen = new Set();
                     data.forEach(item => {
-                        const dl = item.display_name.toLowerCase();
-                        if (!dl.includes('\u0430\u0441\u0442\u0430\u043d\u0430') && !dl.includes('astana') && !dl.includes('\u043d\u0443\u0440-\u0441\u0443\u043b\u0442\u0430\u043d')) return;
+                        const rawDl = item.display_name.toLowerCase();
+                        if (!rawDl.includes('\u0430\u0441\u0442\u0430\u043d\u0430') && !rawDl.includes('astana') && !rawDl.includes('\u043d\u0443\u0440-\u0441\u0443\u043b\u0442\u0430\u043d')) return;
                         
                         let street = item.address.road || item.address.residential || '';
                         let house = item.address.house_number || '';
                         let dname = `${street} ${house}`.trim();
                         if (!dname) dname = item.display_name.split(',')[0];
+                        
+                        const displayText = dname || item.display_name;
+                        
+                        // Strict query match against what the user ACTUALLY sees, handling kz letters
+                        const normalize = (s) => s.toLowerCase().replace(/ұ/g, 'у').replace(/қ/g, 'к').replace(/ғ/g, 'г').replace(/і/g, 'и').replace(/ә/g, 'а').replace(/ң/g, 'н').replace(/ө/g, 'о');
+                        const dl = normalize(displayText);
+                        const qWords = normalize(query).split(' ').filter(w => w.trim().length > 0);
+                        
+                        const match = qWords.every(w => dl.includes(w));
+                        if (!match) return;
                         
                         if (!seen.has(dname)) {
                             seen.add(dname);
