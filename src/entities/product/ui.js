@@ -40,21 +40,21 @@ export function createCard(item, onAddToCart, onPreorder) {
 
     const imagePath = item.media_url ? item.media_url.replace(/^images\//, '') : `catalog/${item.id}.png`;
     const imageSrc = `images/${imagePath}`;
-    const imageClass = 'w-4/5 h-4/5 object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110';
-    const logoClass = 'w-1/2 h-1/2 object-contain opacity-20 mix-blend-screen relative z-10 transition-transform duration-700 ease-out group-hover:scale-105';
+    const imageClass = 'absolute inset-0 w-full h-full p-[10%] object-contain z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110';
+    const logoClass = 'absolute inset-0 w-full h-full p-[25%] object-contain opacity-20 mix-blend-screen z-10 transition-transform duration-700 ease-out group-hover:scale-105';
 
     div.innerHTML = `
         <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded ${badgeColor} border border-current/20 z-30">
             ${badgeText}
         </div>
         
-        <div class="mb-4 aspect-square bg-[#050507] rounded-xl flex items-center justify-center overflow-hidden border border-white/5 relative">
+        <div class="mb-4 aspect-square w-full block bg-[#050507] rounded-xl overflow-hidden border border-white/5 relative">
              <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 12px 12px;"></div>
              
              <div class="absolute top-0 left-0 w-[150%] h-[150%] pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style="background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%);"></div>
              <div class="absolute bottom-0 right-0 w-[150%] h-[150%] pointer-events-none transform translate-x-1/4 translate-y-1/4" style="background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);"></div>
              
-             <img src="${imageSrc}" loading="lazy" class="${imageClass}" alt="${item.flavor}" onerror="this.onerror=null; this.src='images/logo.png'; this.className='${logoClass}';">
+             <img src="${imageSrc}" class="${imageClass}" alt="${item.flavor}" onerror="this.onerror=null; this.src='images/logo.png'; this.className='${logoClass}';">
              
              <div class="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent z-20 pointer-events-none"></div>
         </div>
