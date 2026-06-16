@@ -160,7 +160,7 @@ export function initStaticFilters(DOM, { onTabChange, onSearch, onCategoryChange
                 });
                 e.target.classList.remove('text-white/50');
                 e.target.classList.add('active', 'bg-white', 'text-black');
-                onTabChange(e.target.dataset.tab);
+                onTabChange(e.target.dataset.type);
             });
         });
     }

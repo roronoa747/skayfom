@@ -70,8 +70,9 @@ export function renderCatalog(catalogData, filterState, DOM, handleAddToCart) {
     let isHighlightsMode = false;
     if (filterState.currentTab === 'Магазин' && !filterState.activeBrand && filterState.activeVibes.size === 0 && !filterState.activeStrength && !filterState.searchQuery && filterState.activeIngredients.size === 0) {
         isHighlightsMode = true;
-        // Limit to 12 random highlights for display
-        filteredData = [...filteredData].sort(() => 0.5 - Math.random()).slice(0, 12);
+        // Limit to 12 random highlights for display on desktop, and 6 on mobile (to keep 3 rows in 2 columns)
+        const limit = window.innerWidth < 768 ? 6 : 12;
+        filteredData = [...filteredData].sort(() => 0.5 - Math.random()).slice(0, limit);
     }
 
     if (DOM.customMixPrompt) {
