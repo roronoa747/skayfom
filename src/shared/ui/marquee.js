@@ -48,16 +48,18 @@ export function initJSMarquee(containerId, speed) {
             currentSpeed = 0;
         }
 
-        const halfWidth = inner.scrollWidth / 2;
-        
+        // Optimize: avoid reading scrollWidth every frame
+        let halfWidth = inner.dataset.halfWidth;
+        if (!halfWidth) {
+            halfWidth = inner.scrollWidth / 2;
+            inner.dataset.halfWidth = halfWidth;
+        }
+
         // Optimizing for mobile: don't force reflows if not actively moving automatically
-        if (currentSpeed !== 0 || isActivelyDragging) {
-            let expectedIntScroll = Math.floor(exactScrollLeft);
-            if (Math.abs(container.scrollLeft - expectedIntScroll) >= 1 || isActivelyDragging) {
-                exactScrollLeft = container.scrollLeft;
-                if (currentSpeed === 0 && inner.style.transform !== 'translateX(0px)') {
-                    inner.style.transform = `translateX(0px)`;
-                }
+        if (isActivelyDragging) {
+            exactScrollLeft = container.scrollLeft;
+            if (currentSpeed === 0 && inner.style.transform !== 'translateX(0px)') {
+                inner.style.transform = `translateX(0px)`;
             }
         }
 
@@ -133,7 +135,7 @@ export function initJSMarquee(containerId, speed) {
         }
         
         let targetScroll = scrollLeft - walk;
-        const halfWidth = inner.scrollWidth / 2;
+        let halfWidth = inner.dataset.halfWidth || (inner.scrollWidth / 2);
         
         while (targetScroll >= halfWidth && halfWidth > 0) {
             targetScroll -= halfWidth;

@@ -17,6 +17,9 @@ export function createCard(item, onAddToCart, onPreorder) {
         }
     }
     div.style.setProperty('--vibe-color', vibeColor);
+    div.style.contentVisibility = 'auto';
+    div.style.containIntrinsicSize = '350px';
+    div.style.willChange = 'transform, opacity'; // help with reveal animations
     
     // Status badge (Strict Keys: in_stock)
     const inStock = String(item.in_stock).toLowerCase() === 'true' || String(item.in_stock).toLowerCase() === 'да';
@@ -54,7 +57,7 @@ export function createCard(item, onAddToCart, onPreorder) {
              <div class="absolute top-0 left-0 w-[150%] h-[150%] pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style="background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%);"></div>
              <div class="absolute bottom-0 right-0 w-[150%] h-[150%] pointer-events-none transform translate-x-1/4 translate-y-1/4" style="background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);"></div>
              
-             <img src="${imageSrc}" class="${imageClass}" alt="${item.flavor}" onerror="this.onerror=null; this.src='images/logo.png'; this.className='${logoClass}';">
+             <img src="${imageSrc}" class="${imageClass}" alt="${item.flavor}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='images/logo.png'; this.className='${logoClass}';">
              
              <div class="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent z-20 pointer-events-none"></div>
         </div>
