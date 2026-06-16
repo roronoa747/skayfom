@@ -602,7 +602,6 @@ function initResponsiveMixBuilder() {
     const dropdown = document.getElementById('mix-builder-dropdown-container');
     const desktopContainer = document.getElementById('desktop-mix-container');
     const mobileContainer = document.getElementById('mobile-mix-container');
-    
     if (!dropdown || !desktopContainer || !mobileContainer) return;
     
     function moveMixBuilder() {
@@ -623,48 +622,171 @@ function initResponsiveMixBuilder() {
     // Check on resize
     window.addEventListener('resize', moveMixBuilder, { passive: true });
 }
+ const reviewsData = [
+    { name: "Алихан", initial: "А", text: "Отличный магазин, всегда свежий табак и огромный выбор. Консультанты топовые, помогли собрать классный микс!" },
+    { name: "Ерлан", initial: "Е", text: "Брал кальян в аренду на выходные. Привезли быстро, аппарат чистый, забивка пушечная. Рекомендую всем!" },
+    { name: "Madina", initial: "M", text: "Очень стильное место, всегда в наличии Chabacco и Deus. Цены приятные, обслуживание на уровне, ребята знают толк." },
+    { name: "Данияр", initial: "Д", text: "Лучший сервис в Астане! Всегда быстро отвечают, доставка приезжает вовремя. Качество табака на высоте." },
+    { name: "Айдана", initial: "А", text: "Приятная атмосфера в самом заведении и огромный выбор для дома. Теперь закупаюсь только здесь!" },
+    { name: "Руслан", initial: "Р", text: "Топовые миксы! Ребята подсказали, что взять для вечеринки, гости были в восторге. Однозначно 5 звезд." },
+    { name: "Зарина", initial: "З", text: "Арендовали кальян на день рождения. Привезли полный комплект, все чистое и красивое. Спасибо большое!" }
+];
 
 function initReviewsSlider() {
     const track = document.getElementById('reviews-slider-track');
     if (!track) return;
     
-    // We have 3 original slides
+    const selectedReviews = [...reviewsData].sort(() => 0.5 - Math.random()).slice(0, 4);
+    
+    let html = '';
+    selectedReviews.forEach(r => {
+        html += `
+            <div class="review-slide p-4 bg-black/40 rounded-xl border border-white/5 mb-4 shrink-0 shadow-lg select-none">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center font-bold text-xs">${r.initial}</div>
+                    <div>
+                        <div class="text-sm font-bold text-white/90">${r.name}</div>
+                        <div class="flex text-[#A4D233] text-[10px]">★★★★★</div>
+                    </div>
+                </div>
+                <p class="text-sm text-white/70 line-clamp-4 pointer-events-none">${r.text}</p>
+            </div>
+        `;
+    });
+    
+    // Clone first element for infinite scroll illusion
+    html += `
+        <div class="review-slide p-4 bg-black/40 rounded-xl border border-white/5 mb-4 shrink-0 shadow-lg select-none">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center font-bold text-xs">${selectedReviews[0].initial}</div>
+                <div>
+                    <div class="text-sm font-bold text-white/90">${selectedReviews[0].name}</div>
+                    <div class="flex text-[#A4D233] text-[10px]">★★★★★</div>
+                </div>
+            </div>
+            <p class="text-sm text-white/70 line-clamp-4 pointer-events-none">${selectedReviews[0].text}</p>
+        </div>
+    `;
+    track.innerHTML = html;
+    
     const slides = Array.from(track.querySelectorAll('.review-slide'));
     if (slides.length <= 1) return;
     
     let currentIndex = 0;
-    const totalSlides = slides.length - 1; // 3 original + 1 clone = 4 slides total. totalSlides original is 3.
+    const totalOriginalSlides = 4;
+    let autoScrollTimer = null;
+    let autoScrollTimeout = null;
     
-    setInterval(() => {
-        currentIndex++;
-        
-        // Calculate the height of one slide + margin
-        // Typically p-4 + mb-4 = 16px padding + 16px margin. We can just use offsetHeight + 16 (for mb-4 gap)
+    const startAutoScroll = () => {
+        clearInterval(autoScrollTimer);
+        autoScrollTimer = setInterval(goToNext, 5000);
+    };
+    
+    const pauseAutoScroll = () => {
+        clearInterval(autoScrollTimer);
+        clearTimeout(autoScrollTimeout);
+        autoScrollTimeout = setTimeout(startAutoScroll, 10000);
+    };
+    
+    const updatePosition = (instant = false) => {
         const slideHeight = slides[0].offsetHeight + 16;
-        
-        track.style.transition = 'transform 0.7s cubic-bezier(0.25, 1, 0.5, 1)';
+        track.style.transition = instant ? 'none' : 'transform 0.7s cubic-bezier(0.25, 1, 0.5, 1)';
         track.style.transform = `translateY(-${currentIndex * slideHeight}px)`;
+    };
+
+    const goToNext = () => {
+        currentIndex++;
+        updatePosition();
         
-        // If we reached the clone, jump back to start seamlessly
-        if (currentIndex === totalSlides) {
+        if (currentIndex === totalOriginalSlides) {
             setTimeout(() => {
-                track.style.transition = 'none';
                 currentIndex = 0;
-                track.style.transform = `translateY(0)`;
-            }, 700); // wait for the transition to finish
+                updatePosition(true);
+            }, 700);
         }
-    }, 5000);
+    };
+
+    const goToPrev = () => {
+        if (currentIndex === 0) {
+            currentIndex = totalOriginalSlides;
+            updatePosition(true);
+            track.offsetHeight; // Force reflow
+        }
+        currentIndex--;
+        updatePosition();
+    };
+    
+    let startY = 0;
+    let isDragging = false;
+    let currentY = 0;
+    
+    const handleStart = (e) => {
+        startY = e.type.includes('mouse') ? e.pageY : e.touches[0].pageY;
+        isDragging = true;
+        pauseAutoScroll();
+    };
+    
+    const handleMove = (e) => {
+        if (!isDragging) return;
+        const y = e.type.includes('mouse') ? e.pageY : e.touches[0].pageY;
+        currentY = y - startY;
+        if (e.cancelable) e.preventDefault();
+    };
+    
+    const handleEnd = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        if (currentY < -30) {
+            goToNext();
+        } else if (currentY > 30) {
+            goToPrev();
+        }
+        currentY = 0;
+    };
+    
+    track.addEventListener('mousedown', handleStart);
+    track.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+    
+    track.addEventListener('touchstart', handleStart, {passive: true});
+    track.addEventListener('touchmove', handleMove, {passive: false});
+    track.addEventListener('touchend', handleEnd);
+
+    startAutoScroll();
+}
+
+function initInstagramFeed() {
+    const feed = document.getElementById('instagram-feed');
+    if (!feed) return;
+    
+    const instaPool = [];
+    for(let i=1; i<=20; i++) {
+        instaPool.push(`/images/insta${i}.png`);
+    }
+    
+    const selected = [...instaPool].sort(() => 0.5 - Math.random()).slice(0, 2);
+    const iconSvg = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>`;
+    
+    let html = '';
+    selected.forEach((src) => {
+        html += `
+            <a href="https://www.instagram.com/s.kayfom_store/" target="_blank" class="w-full aspect-[4/5] bg-white/5 rounded-xl border border-white/10 overflow-hidden relative group block">
+                <img src="${src}" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=400&q=80'">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-end p-4">
+                    <span class="text-sm font-medium flex items-center gap-2">${iconSvg} Смотреть</span>
+                </div>
+            </a>
+        `;
+    });
+    feed.innerHTML = html;
 }
 
 // Call on load
 document.addEventListener('DOMContentLoaded', () => {
     initReviewsSlider();
+    initInstagramFeed();
 });
-
-
-
-
-// Custom autocomplete removed
 
 let deliveryMap = null;
 let deliveryPlacemark = null;
