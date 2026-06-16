@@ -1,20 +1,21 @@
 import { triggerSmoke } from '../../shared/ui/loader.js';
+import { isAdult, setAdult } from '../../entities/session/index.js';
 
 export function initAgeGate(domElements) {
     const { ageGate, btn18Yes, btn18No, appWrapper } = domElements;
     
     if (!ageGate) return;
 
-    const isAdult = localStorage.getItem('skayfom_21plus');
-    if (isAdult) {
+    const isAdultCheck = isAdult();
+    if (isAdultCheck) {
         ageGate.style.display = 'none';
-    } else if (appWrapper && !isAdult) {
+    } else if (appWrapper && !isAdultCheck) {
         appWrapper.classList.add('scale-105', 'opacity-50');
     }
 
     if (btn18Yes) {
         btn18Yes.addEventListener('click', () => {
-            localStorage.setItem('skayfom_21plus', 'true');
+            setAdult(true);
             ageGate.classList.add('opacity-0');
             
             if (appWrapper) {

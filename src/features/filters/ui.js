@@ -1,6 +1,7 @@
 import { initJSMarquee } from '../../shared/ui/marquee.js';
 import { state, setBrand, toggleVibe } from './model.js';
 import { VIBE_COLORS } from '../../shared/lib/constants.js';
+import { isB2BMode } from '../../entities/session/index.js';
 
 export function renderBrandFilters(catalogData, containerId) {
     const container = document.getElementById(containerId);
@@ -9,7 +10,7 @@ export function renderBrandFilters(catalogData, containerId) {
     // Get unique brands
     const brands = new Set();
     catalogData.forEach(item => {
-        const isB2B = localStorage.getItem('isB2BMode') === 'true';
+        const isB2B = isB2BMode();
         if (item.category === 'Для заведения' && !isB2B) return;
         
         if (item.type === state.currentTab) {
@@ -76,7 +77,7 @@ export function renderVibeFilters(catalogData, containerId) {
     
     const vibes = new Set();
     catalogData.forEach(item => {
-        const isB2B = localStorage.getItem('isB2BMode') === 'true';
+        const isB2B = isB2BMode();
         if (item.category === 'Для заведения' && !isB2B) return;
         
         if (item.type === state.currentTab) {

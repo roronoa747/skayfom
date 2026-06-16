@@ -1,15 +1,16 @@
 import { loadCatalogData } from '../../shared/api/catalog.js';
-import { addToCart, subscribeToCart } from '../../entities/cart/model.js';
-import { state as filterState, subscribeToFilters, setTab, setSearchQuery, setProductCategory, setStrength } from '../../features/filters/model.js';
-import { renderBrandFilters, renderVibeFilters, initStaticFilters } from '../../features/filters/ui.js';
-import { initMixBuilderUI } from '../../features/mixBuilder/ui.js';
-import { renderCatalog as renderCatalogWidget } from '../../widgets/catalog/ui.js';
+import { addToCart, subscribeToCart } from '../../entities/cart/index.js';
+import { state as filterState, subscribeToFilters, setTab, setSearchQuery, setProductCategory, setStrength } from '../../features/filters/index.js';
+import { renderBrandFilters, renderVibeFilters, initStaticFilters } from '../../features/filters/index.js';
+import { initMixBuilderUI } from '../../features/mixBuilder/index.js';
+import { renderCatalog as renderCatalogWidget } from '../../widgets/catalog/index.js';
 
-import { initAgeGate } from '../../widgets/ageGate/ui.js';
-import { initReviewsSlider } from '../../widgets/reviews/ui.js';
-import { initInstagramFeed } from '../../widgets/instagramFeed/ui.js';
-import { initCartDrawer, openCartDrawer, renderCartUI, closeOrderModal } from '../../widgets/cartDrawer/ui.js';
-import { initCheckout } from '../../features/checkout/ui.js';
+import { initAgeGate } from '../../widgets/ageGate/index.js';
+import { initReviewsSlider } from '../../widgets/reviews/index.js';
+import { initInstagramFeed } from '../../widgets/instagramFeed/index.js';
+import { initCartDrawer, openCartDrawer, renderCartUI, closeOrderModal } from '../../widgets/cartDrawer/index.js';
+import { initCheckout } from '../../features/checkout/index.js';
+import { initToast, showToast as showToastShared } from '../../shared/ui/toast/index.js';
 
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
 const FALLBACK_CSV = 'catalog_template.csv';
@@ -71,32 +72,10 @@ export function initDOM() {
     DOM.locationError = document.getElementById('location-error');
 }
 
-export function showToast(message) {
-    if (!DOM.toastContainer) return;
-    const toast = document.createElement('div');
-    toast.className = 'bg-[#111113]/95 backdrop-blur-xl border border-sky-500/30 text-white px-6 py-4 rounded-xl shadow-[0_10px_30px_rgba(14,165,233,0.15)] flex items-center gap-3 transform translate-y-full opacity-0 transition-all duration-300 pointer-events-auto';
-    toast.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-        </div>
-        <div>
-            <p class="font-display font-bold text-[10px] tracking-[0.1em] text-white/50 mb-0.5">СТАТУС</p>
-            <p class="font-alt text-sm">${message}</p>
-        </div>
-    `;
-    DOM.toastContainer.appendChild(toast);
-    
-    requestAnimationFrame(() => toast.classList.remove('translate-y-full', 'opacity-0'));
-    setTimeout(() => {
-        toast.classList.add('translate-y-full', 'opacity-0');
-        setTimeout(() => toast.parentNode && toast.parentNode.removeChild(toast), 300);
-    }, 3000);
-}
-
 function handleAddToCart(item) {
     addToCart(item);
     const itemName = item.flavor || item.brand || 'Товар';
-    showToast(`«${itemName}» добавлен в корзину`);
+    showToastShared(`«${itemName}» добавлен в корзину`);
 }
 
 function showErrorState() {
@@ -112,6 +91,7 @@ function showErrorState() {
 
 export function initHome() {
     initDOM();
+    initToast(DOM.toastContainer);
     
     // Initialize external widgets & features
     initAgeGate(DOM);
@@ -120,7 +100,6 @@ export function initHome() {
     
     initReviewsSlider();
     initInstagramFeed();
-    initResponsiveMixBuilder();
 
     // Event Listeners for local logic
     initLocalEventListeners();
@@ -215,23 +194,4 @@ function initLocalEventListeners() {
     }
 }
 
-function initResponsiveMixBuilder() {
-    const dropdown = document.getElementById('mix-builder-dropdown-container');
-    const desktopContainer = document.getElementById('desktop-mix-container');
-    const mobileContainer = document.getElementById('mobile-mix-container');
-    if (!dropdown || !desktopContainer || !mobileContainer) return;
-    
-    function moveMixBuilder() {
-        if (window.innerWidth < 768) {
-            if (mobileContainer.children.length === 0) {
-                mobileContainer.appendChild(dropdown);
-            }
-        } else {
-            if (desktopContainer.children.length === 0) {
-                desktopContainer.appendChild(dropdown);
-            }
-        }
-    }
-    moveMixBuilder();
-    window.addEventListener('resize', moveMixBuilder, { passive: true });
-}
+

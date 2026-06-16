@@ -1,4 +1,4 @@
-import { createCard } from '../../entities/product/ui.js';
+import { createCard } from '../../entities/product/index.js';
 import { initScrollReveal } from '../../shared/ui/scroll.js';
 
 export function renderCatalog(catalogData, filterState, DOM, handleAddToCart) {

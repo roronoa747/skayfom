@@ -1,4 +1,4 @@
-import { state, toggleIngredient } from '../filters/model.js';
+import { state, toggleIngredient } from '../filters/index.js';
 
 export function initMixBuilderUI(DOM, { WHATSAPP_NUMBER, onIngredientToggle }) {
     if (DOM.ingredientBtns) {

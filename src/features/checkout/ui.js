@@ -1,6 +1,6 @@
-import { cart } from '../../entities/cart/model.js';
+import { cart } from '../../entities/cart/index.js';
 import { triggerSmoke } from '../../shared/ui/loader.js';
-import { closeOrderModal } from '../../widgets/cartDrawer/ui.js';
+import { closeOrderModal } from '../../widgets/cartDrawer/index.js';
 
 let DOM = {};
 const WHATSAPP_NUMBER = '+77066458965';

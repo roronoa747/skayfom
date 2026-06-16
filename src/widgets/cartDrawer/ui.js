@@ -1,4 +1,4 @@
-import { cart, updateQuantity, removeFromCart, getCartTotal, getCartCount } from '../../entities/cart/model.js';
+import { cart, updateQuantity, removeFromCart, getCartTotal, getCartCount } from '../../entities/cart/index.js';
 
 let DOM = {};
 let selectedItemForOrder = null;
