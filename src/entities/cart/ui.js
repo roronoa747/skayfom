@@ -10,9 +10,14 @@ export function createCartItemElement(c, onUpdateQuantity, onRemove) {
         ? `<div class="text-sm font-bold text-sky-400">${c.price * c.quantity} ₸</div>`
         : `<div class="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-center leading-tight whitespace-nowrap">Предзаказ</div>`;
     
+    const brandLower = (c.item.brand || '').toLowerCase().trim();
+    const isSarma = brandLower.includes('сарма') || brandLower.includes('sarma');
+    const imageClass = isSarma ? 'w-full h-full object-cover' : 'w-full h-full object-contain';
+    const containerClass = isSarma ? 'w-16 h-16 bg-black/50 rounded-lg flex items-center justify-center overflow-hidden' : 'w-16 h-16 bg-black/50 rounded-lg flex items-center justify-center p-2 overflow-hidden';
+
     div.innerHTML = `
-        <div class="w-16 h-16 bg-black/50 rounded-lg flex items-center justify-center p-2">
-            <img src="${imageSrc}" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='./images/logo.png';">
+        <div class="${containerClass}">
+            <img src="${imageSrc}" class="${imageClass}" onerror="this.onerror=null; this.src='./images/logo.png';">
         </div>
         <div class="flex-1 min-w-0">
             <div class="text-xs text-white/50 truncate">${c.item.brand}</div>

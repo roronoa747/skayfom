@@ -43,7 +43,12 @@ export function createCard(item, onAddToCart, onPreorder) {
 
     const imagePath = item.media_url ? item.media_url.replace(/^images\//, '') : `catalog/${item.id}.png`;
     const imageSrc = `images/${imagePath}`;
-    const imageClass = 'absolute inset-0 w-full h-full p-[10%] object-contain z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110';
+    
+    let imageClass = 'absolute inset-0 w-full h-full p-[10%] object-contain z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110';
+    if (brandLower.includes('сарма') || brandLower.includes('sarma')) {
+        imageClass = 'absolute inset-0 w-full h-full object-cover z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out group-hover:scale-110';
+    }
+    
     const logoClass = 'absolute inset-0 w-full h-full p-[25%] object-contain opacity-20 mix-blend-screen z-10 transition-transform duration-700 ease-out group-hover:scale-105';
 
     div.innerHTML = `
