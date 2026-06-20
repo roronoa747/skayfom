@@ -48,14 +48,14 @@
 
 <body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden selection:bg-white/30 relative bg-black">
     <!-- Cinematic Atmosphere Glow (Neon Smoke) -->
-    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <!-- Original Orbs (Enhanced) -->
-        <div class="absolute top-[5%] left-[10%] w-[600px] h-[600px] md:w-[1000px] md:h-[1000px] opacity-20 mix-blend-screen pointer-events-none animate-smoke-left" style="background: radial-gradient(circle, rgba(234,88,12,0.8) 0%, rgba(234,88,12,0) 70%);"></div>
-        <div class="absolute bottom-[5%] right-[10%] w-[500px] h-[500px] md:w-[800px] md:h-[800px] opacity-20 mix-blend-screen pointer-events-none animate-smoke-right" style="background: radial-gradient(circle, rgba(138,43,226,0.8) 0%, rgba(138,43,226,0) 70%);"></div>
+        <div class="absolute top-[5%] left-[5%] w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-orange-600/40 rounded-full blur-[100px] md:blur-[150px] mix-blend-screen pointer-events-none animate-smoke-left"></div>
+        <div class="absolute bottom-[10%] right-[5%] w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-purple-700/40 rounded-full blur-[100px] md:blur-[150px] mix-blend-screen pointer-events-none animate-smoke-right"></div>
         
-        <!-- Extra Side Ambience for Desktop Margins -->
-        <div class="hidden md:block absolute top-[40%] left-[-10%] w-[800px] h-[800px] opacity-15 mix-blend-screen pointer-events-none animate-smoke-right" style="background: radial-gradient(circle, rgba(138,43,226,0.6) 0%, rgba(138,43,226,0) 70%);"></div>
-        <div class="hidden md:block absolute top-[20%] right-[-10%] w-[700px] h-[700px] opacity-15 mix-blend-screen pointer-events-none animate-smoke-left" style="background: radial-gradient(circle, rgba(234,88,12,0.6) 0%, rgba(234,88,12,0) 70%);"></div>
+        <!-- Extra Side Ambience for Desktop Margins (Highly Visible) -->
+        <div class="hidden md:block absolute top-[40%] left-[-5%] w-[400px] h-[400px] bg-indigo-600/30 rounded-full blur-[120px] mix-blend-screen pointer-events-none animate-smoke-right"></div>
+        <div class="hidden md:block absolute top-[20%] right-[-5%] w-[450px] h-[450px] bg-orange-500/30 rounded-full blur-[120px] mix-blend-screen pointer-events-none animate-smoke-left"></div>
     </div>
 
     <!-- AGE GATE (18+) -->
@@ -67,7 +67,6 @@
                 class="w-full h-full object-contain logo-glow edge-fade"
                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIiBmaWxsPSJ3aGl0ZSI+PHRleHQgeD0iNTAiIHk9IjEwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiPkxPR088L3RleHQ+PC9zdmc+'">
         </div>
-
         <h1 class="text-3xl font-display font-bold text-center tracking-widest mb-2 neon-text-bloom">S.KAYFOM STORE</h1>
         <p class="text-white/60 mb-10 text-center max-w-xs">Сайт содержит информацию о табачной продукции. Вам уже
             исполнилось 21 год?</p>
@@ -93,7 +92,7 @@
     </div>
 
     <!-- Main Content Wrapper for Scale Effect -->
-    <div id="app-wrapper" class="flex-1 flex flex-col min-h-screen w-full transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-center">
+    <div id="app-wrapper" class="relative z-10 flex-1 flex flex-col min-h-screen w-full transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-center">
 
     <!-- HEADER & NAVIGATION -->
     <header id="main-header" class="relative md:sticky md:top-4 z-40 mx-2 md:mx-auto max-w-6xl mt-[calc(env(safe-area-inset-top)+0.5rem)] pt-4 pb-3 md:pt-5 md:pb-4 px-2 md:px-4 rounded-[2rem] transition-all duration-500 ease-in-out will-change-transform bg-[#070708]/60 backdrop-blur-2xl border border-white/10 shadow-[0_0_30px_rgba(138,43,226,0.15),0_0_15px_rgba(234,88,12,0.1)]">

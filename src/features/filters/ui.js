@@ -36,9 +36,11 @@ export function renderBrandFilters(catalogData, containerId) {
     let innerHtml = '';
     
     Array.from(brands).sort().forEach(brand => {
-        const isActive = state.activeBrand === brand ? 'active bg-white/10 border-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]' : 'bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/5';
+        const isActive = state.activeBrand === brand 
+            ? 'active bg-white/10 border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.15)]' 
+            : 'bg-white/5 text-white/60 border-white/10 hover:text-white hover:bg-white/10 hover:border-white/20';
         innerHtml += `
-            <button class="brand-btn flex items-center flex-shrink-0 border rounded-full px-4 py-1.5 text-xs font-sans font-semibold tracking-wide whitespace-nowrap transition-all ${isActive}" data-brand="${brand}">
+            <button class="brand-btn flex items-center flex-shrink-0 border rounded-md px-4 py-1.5 text-[10px] font-sans font-semibold tracking-widest uppercase whitespace-nowrap backdrop-blur-sm shadow-inner transition-all ${isActive}" data-brand="${brand}">
                 ${brand}
             </button>
         `;
