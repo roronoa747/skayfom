@@ -86,6 +86,15 @@ export function renderCartUI() {
             ? `<span class="font-alt font-bold text-sm text-sky-400">${c.price > 0 ? `${(c.price * c.quantity).toLocaleString('ru-RU')} ₸` : 'Уточняется'}</span>`
             : `<div class="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 mt-1 rounded text-center leading-tight">Предзаказ</div>`;
         
+        let changeHookahHtml = '';
+        if (item.category === 'Аренда' && item.flavor === 'Стандартный кальян') {
+            changeHookahHtml = `
+                <button class="btn-change-hookah w-full mt-3 py-2 bg-white/5 border border-sky-400/30 rounded-lg text-[10px] font-display font-bold tracking-[0.1em] text-sky-400 hover:bg-sky-400/20 transition-colors">
+                    ВЫБРАТЬ ДРУГОЙ КАЛЬЯН
+                </button>
+            `;
+        }
+
         const div = document.createElement('div');
         div.className = 'bg-[#111113]/80 border border-white/10 rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden shrink-0';
         div.innerHTML = `
@@ -113,11 +122,29 @@ export function renderCartUI() {
                     ${priceTextHtml}
                 </div>
             </div>
+            ${changeHookahHtml}
         `;
         
         div.querySelector('.btn-remove').addEventListener('click', () => removeFromCart(c.cartId));
         div.querySelector('.btn-qty-minus').addEventListener('click', () => updateQuantity(c.cartId, -1));
         div.querySelector('.btn-qty-plus').addEventListener('click', () => updateQuantity(c.cartId, 1));
+        
+        const btnChangeHookah = div.querySelector('.btn-change-hookah');
+        if (btnChangeHookah) {
+            btnChangeHookah.addEventListener('click', () => {
+                closeOrderModal();
+                
+                // Switch to rent tab
+                const rentTabBtn = document.querySelector('.tab-btn[data-type="Аренда"]');
+                if (rentTabBtn) rentTabBtn.click();
+                
+                // Select hookah category
+                setTimeout(() => {
+                    const hookahCatBtn = Array.from(document.querySelectorAll('.cat-btn')).find(b => b.dataset.cat === 'Кальян');
+                    if (hookahCatBtn) hookahCatBtn.click();
+                }, 50);
+            });
+        }
         
         DOM.cartItemsContainer.appendChild(div);
     });

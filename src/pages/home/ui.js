@@ -129,6 +129,14 @@ function initLocalEventListeners() {
     initStaticFilters(DOM, {
         onTabChange: (tab) => {
             setTab(tab);
+            if (tab === 'Аренда') {
+                const catBtns = document.querySelectorAll('.cat-btn');
+                catBtns.forEach(btn => {
+                    if (btn.dataset.cat === 'Табаки') {
+                        btn.click();
+                    }
+                });
+            }
             if (DOM.mixBuilderContainer) {
                 DOM.mixBuilderContainer.style.display = tab === 'Аренда' ? 'none' : 'block';
             }

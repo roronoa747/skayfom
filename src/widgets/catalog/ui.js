@@ -10,7 +10,11 @@ export function renderCatalog(catalogData, filterState, DOM, handleAddToCart) {
         if (item.category === 'Для заведения' && !isB2B) return false;
         
         // Filter by Tab (Магазин/Аренда)
-        if (item.type !== filterState.currentTab) return false;
+        if (filterState.currentTab === 'Аренда') {
+            if (item.type !== 'Аренда' && item.product_category !== 'Табаки') return false;
+        } else {
+            if (item.type === 'Аренда') return false;
+        }
         
         // Filter by Product Category
         if (filterState.activeProductCategory && filterState.activeProductCategory !== 'Все') {
