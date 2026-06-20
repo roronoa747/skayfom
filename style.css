@@ -3,9 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+body, html {
     background-color: #070708;
     color: #ffffff;
+    touch-action: manipulation;
 }
 
 /* Typography */
