@@ -1,0 +1,7 @@
+/* 2GIS Map Dark Filter */
+.map-dark-filter iframe {
+    filter: invert(90%) hue-rotate(180deg) brightness(80%) contrast(120%);
+}
+
+/* Fix Yandex Suggest Z-Index */
+[class*="ymaps"] { z-index: 99999 !important; }

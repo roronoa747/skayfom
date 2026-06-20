@@ -1,5 +1,7 @@
 let scrollObserver = null;
 
+import './scroll/style.css';
+
 export function initScrollReveal() {
     if (scrollObserver) {
         scrollObserver.disconnect();

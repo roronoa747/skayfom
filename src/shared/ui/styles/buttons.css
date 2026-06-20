@@ -1,0 +1,26 @@
+/* Button & Tab Hovers */
+.tab-btn, .vibe-btn, .ingredient-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.tab-btn:hover, .vibe-btn:hover, .ingredient-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.tab-btn.active, .vibe-btn.active, .ingredient-btn.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.glass-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+.glass-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    color: #000;
+}

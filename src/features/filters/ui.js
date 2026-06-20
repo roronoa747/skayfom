@@ -36,9 +36,9 @@ export function renderBrandFilters(catalogData, containerId) {
     let innerHtml = '';
     
     Array.from(brands).sort().forEach(brand => {
-        const isActive = state.activeBrand === brand ? 'active bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]' : 'bg-[#111113]/80 text-white/50 border-white/10 hover:text-white/80 hover:bg-white/5';
+        const isActive = state.activeBrand === brand ? 'active bg-white/10 border-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]' : 'bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/5';
         innerHtml += `
-            <button class="brand-btn flex items-center flex-shrink-0 border rounded px-4 py-2 text-[10px] font-display tracking-[0.2em] whitespace-nowrap transition-all ${isActive}" data-brand="${brand}">
+            <button class="brand-btn flex items-center flex-shrink-0 border rounded-full px-4 py-1.5 text-xs font-sans font-semibold tracking-wide whitespace-nowrap transition-all ${isActive}" data-brand="${brand}">
                 ${brand}
             </button>
         `;
@@ -47,7 +47,7 @@ export function renderBrandFilters(catalogData, containerId) {
     let repeatedHtml = innerHtml.repeat(3);
     
     container.innerHTML = `
-        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
+        <span class="text-[10px] text-white/40 uppercase tracking-widest shrink-0 font-sans font-semibold mr-2 z-10 bg-[#070708] pr-2 relative">БРЕНД:</span>
         <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="brand-marquee-container">
             <div class="flex gap-2 w-max js-marquee-inner px-2">
                 <div class="flex gap-2">${repeatedHtml}</div>
@@ -109,9 +109,9 @@ export function renderVibeFilters(catalogData, containerId) {
     
     Array.from(vibes).sort().forEach(vibe => {
         const colorClass = VIBE_COLORS[vibe] || 'bg-zinc-300 drop-shadow-[0_0_5px_rgba(212,212,216,0.8)]';
-        const isActive = state.activeVibes.has(vibe) ? 'active bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)] border-white/30' : 'bg-[#111113]/80 text-white/50 border-white/10 hover:text-white/80 hover:bg-white/5';
+        const isActive = state.activeVibes.has(vibe) ? 'active bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border-white/20' : 'bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/5';
         innerHtml += `
-            <button class="vibe-btn flex items-center gap-2 flex-shrink-0 border rounded-full px-4 py-2 text-[10px] font-display tracking-[0.2em] whitespace-nowrap transition-all ${isActive}" data-vibe="${vibe}">
+            <button class="vibe-btn flex items-center gap-2 flex-shrink-0 border rounded-full px-4 py-1.5 text-xs font-sans font-semibold tracking-wide whitespace-nowrap transition-all ${isActive}" data-vibe="${vibe}">
                 <span class="w-1.5 h-1.5 rounded-full ${colorClass}"></span>
                 ${vibe.toUpperCase()}
             </button>
@@ -121,7 +121,7 @@ export function renderVibeFilters(catalogData, containerId) {
     let repeatedHtml = innerHtml.repeat(3);
     
     container.innerHTML = `
-        <span class="text-[10px] text-white/50 uppercase tracking-[0.2em] shrink-0 font-display mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
+        <span class="text-[10px] text-white/40 uppercase tracking-widest shrink-0 font-sans font-semibold mr-2 z-10 bg-[#070708] pr-2 relative">ВАЙБ:</span>
         <div class="overflow-x-auto hide-scrollbar w-full mask-edges relative flex cursor-grab" id="vibe-marquee-container">
             <div class="flex gap-2 w-max js-marquee-inner px-2">
                 <div class="flex gap-2">${repeatedHtml}</div>

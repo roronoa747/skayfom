@@ -1,4 +1,8 @@
-// S.KAYFOM STORE - Main Entry Point
+import './styles/main.css';
+import '../shared/ui/styles/typography.css';
+import '../shared/ui/styles/buttons.css';
+import '../shared/ui/styles/animations.css';
+import '../widgets/map/style.css';
 import { initScrollReveal } from '../shared/ui/scroll.js';
 import { initHome } from '../pages/home/ui.js';
 

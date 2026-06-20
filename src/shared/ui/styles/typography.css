@@ -1,0 +1,14 @@
+/* Typography */
+.font-display {
+    font-family: 'Syncopate', sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.25em;
+}
+
+.font-alt {
+    font-family: 'Unbounded', sans-serif !important;
+}
+
+.text-glow-neon {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 0.2);
+}

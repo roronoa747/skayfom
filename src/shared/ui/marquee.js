@@ -49,8 +49,8 @@ export function initJSMarquee(containerId, speed) {
         }
 
         // Optimize: avoid reading scrollWidth every frame
-        let halfWidth = inner.dataset.halfWidth;
-        if (!halfWidth) {
+        let halfWidth = parseFloat(inner.dataset.halfWidth);
+        if (!halfWidth || isNaN(halfWidth)) {
             halfWidth = inner.scrollWidth / 2;
             inner.dataset.halfWidth = halfWidth;
         }
@@ -135,7 +135,11 @@ export function initJSMarquee(containerId, speed) {
         }
         
         let targetScroll = scrollLeft - walk;
-        let halfWidth = inner.dataset.halfWidth || (inner.scrollWidth / 2);
+        let halfWidth = parseFloat(inner.dataset.halfWidth);
+        if (!halfWidth || isNaN(halfWidth)) {
+            halfWidth = inner.scrollWidth / 2;
+            inner.dataset.halfWidth = halfWidth;
+        }
         
         while (targetScroll >= halfWidth && halfWidth > 0) {
             targetScroll -= halfWidth;
