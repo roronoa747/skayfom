@@ -63,9 +63,11 @@ export function createCard(item, onAddToCart, onPreorder) {
         </div>
         
         <div class="flex-1 flex flex-col relative z-20">
-            <h3 class="text-[10px] text-neutral-500 font-display tracking-[0.3em] uppercase mb-1">${item.brand}</h3>
-            <h2 class="text-xl font-alt font-black text-white mb-2 uppercase">${item.flavor}</h2>
-            <p class="text-xs text-white/50 mb-4 line-clamp-2 font-alt font-light leading-relaxed">${item.description || ''}</p>
+            <div class="mb-2">
+                <span class="inline-block px-2.5 py-1 bg-white/5 border border-white/10 rounded-md text-[9px] text-white/80 font-sans font-semibold tracking-[0.2em] uppercase backdrop-blur-sm shadow-inner">${item.brand}</span>
+            </div>
+            <h2 class="text-lg md:text-xl font-alt font-black text-white mb-2 uppercase leading-tight">${item.flavor}</h2>
+            <p class="text-xs text-white/50 mb-4 line-clamp-2 font-sans font-light leading-relaxed">${item.description || ''}</p>
             
             <div class="mt-auto flex flex-col gap-4">
                 ${strengthDots}

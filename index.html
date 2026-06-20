@@ -47,10 +47,15 @@
 </head>
 
 <body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden selection:bg-white/30 relative bg-black">
-    <!-- Cinematic Atmosphere Glow -->
-        <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-        <div class="absolute top-[10%] left-[20%] w-[800px] h-[800px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(234,88,12,1) 0%, rgba(234,88,12,0) 70%);"></div>
-        <div class="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] opacity-10 mix-blend-screen pointer-events-none" style="background: radial-gradient(circle, rgba(185,28,28,1) 0%, rgba(185,28,28,0) 70%);"></div>
+    <!-- Cinematic Atmosphere Glow (Neon Smoke) -->
+    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+        <!-- Original Orbs (Enhanced) -->
+        <div class="absolute top-[5%] left-[10%] w-[600px] h-[600px] md:w-[1000px] md:h-[1000px] opacity-20 mix-blend-screen pointer-events-none animate-smoke-left" style="background: radial-gradient(circle, rgba(234,88,12,0.8) 0%, rgba(234,88,12,0) 70%);"></div>
+        <div class="absolute bottom-[5%] right-[10%] w-[500px] h-[500px] md:w-[800px] md:h-[800px] opacity-20 mix-blend-screen pointer-events-none animate-smoke-right" style="background: radial-gradient(circle, rgba(138,43,226,0.8) 0%, rgba(138,43,226,0) 70%);"></div>
+        
+        <!-- Extra Side Ambience for Desktop Margins -->
+        <div class="hidden md:block absolute top-[40%] left-[-10%] w-[800px] h-[800px] opacity-15 mix-blend-screen pointer-events-none animate-smoke-right" style="background: radial-gradient(circle, rgba(138,43,226,0.6) 0%, rgba(138,43,226,0) 70%);"></div>
+        <div class="hidden md:block absolute top-[20%] right-[-10%] w-[700px] h-[700px] opacity-15 mix-blend-screen pointer-events-none animate-smoke-left" style="background: radial-gradient(circle, rgba(234,88,12,0.6) 0%, rgba(234,88,12,0) 70%);"></div>
     </div>
 
     <!-- AGE GATE (18+) -->
@@ -91,17 +96,12 @@
     <div id="app-wrapper" class="flex-1 flex flex-col min-h-screen w-full transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-center">
 
     <!-- HEADER & NAVIGATION -->
-    <header id="main-header" class="relative md:sticky md:top-0 z-30 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-2 md:pb-4 transition-all duration-500 ease-in-out will-change-transform">
-        <!-- Base Blur & Background -->
-        <div class="absolute inset-0 bg-[#070708]/85 backdrop-blur-3xl z-[-3]"></div>
+    <header id="main-header" class="relative md:sticky md:top-4 z-40 mx-2 md:mx-auto max-w-6xl mt-[calc(env(safe-area-inset-top)+0.5rem)] pt-4 pb-3 md:pt-5 md:pb-4 px-2 md:px-4 rounded-[2rem] transition-all duration-500 ease-in-out will-change-transform bg-[#070708]/60 backdrop-blur-2xl border border-white/10 shadow-[0_0_30px_rgba(138,43,226,0.15),0_0_15px_rgba(234,88,12,0.1)]">
         
         <!-- Noise Texture Overlay -->
-        <div class="absolute inset-0 bg-noise z-[-2] mix-blend-overlay opacity-20 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-noise z-[-2] mix-blend-overlay opacity-20 pointer-events-none rounded-[2rem]"></div>
 
-        <!-- Glowing Bottom Border -->
-        <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-50 z-[-1] animate-border-glow"></div>
-
-        <div class="container mx-auto px-4 max-w-6xl relative z-10">
+        <div class="w-full relative z-10">
             <!-- Top Row: Logo, Search, B2B -->
             <div class="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6 mb-4 md:mb-6">
 
