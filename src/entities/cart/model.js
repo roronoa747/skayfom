@@ -17,7 +17,7 @@ export function addToCart(item) {
     const existing = cart.find(c => c.item.flavor === item.flavor && c.item.brand === item.brand && c.item.type === (isRentMode ? 'Аренда' : item.type));
     
     // Rent Pricing Logic for Tobaccos
-    let itemPrice = parseInt(item.price) || 0;
+    let itemPrice = isRentMode ? (parseInt(item.price_rent) || parseInt(item.price) || 0) : (parseInt(item.price_sale) || parseInt(item.price) || 0);
     if (isRentMode && isTobacco) {
         // Find how many tobacco bowls are already in the cart for rent
         const rentTobaccos = cart.filter(c => (c.item.product_category === 'Табаки' || c.item.category === 'Табаки') && c.item.type === 'Аренда');
@@ -77,7 +77,7 @@ export function updateQuantity(cartId, delta) {
     } else {
         // Special logic for Coals in Rent kit: first 4 are base price (0), each extra coal adds EXTRA_COAL_PRICE
         if (cartItem.item.category === 'Аренда' && cartItem.item.flavor === 'Уголь (шт)') {
-            const EXTRA_COAL_PRICE = 0; // Configurable from DB later
+            const EXTRA_COAL_PRICE = parseInt(cartItem.item.price_rent) || parseInt(cartItem.item.price_sale) || parseInt(cartItem.item.price) || 0;
             const baseQuantity = 4;
             if (cartItem.quantity > baseQuantity) {
                 cartItem.price = EXTRA_COAL_PRICE; 
