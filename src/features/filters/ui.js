@@ -155,13 +155,14 @@ export function initStaticFilters(DOM, { onTabChange, onSearch, onCategoryChange
     if (DOM.tabBtns) {
         DOM.tabBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
+                const btnTarget = e.currentTarget;
                 DOM.tabBtns.forEach(b => {
-                    b.classList.remove('active', 'bg-white', 'text-black');
+                    b.classList.remove('active', 'text-white', 'bg-white/15', 'shadow-[0_0_10px_rgba(255,255,255,0.1)]', 'border', 'border-white/20');
                     b.classList.add('text-white/50');
                 });
-                e.target.classList.remove('text-white/50');
-                e.target.classList.add('active', 'bg-white', 'text-black');
-                onTabChange(e.target.dataset.type);
+                btnTarget.classList.remove('text-white/50');
+                btnTarget.classList.add('active', 'text-white', 'bg-white/15', 'shadow-[0_0_10px_rgba(255,255,255,0.1)]', 'border', 'border-white/20');
+                onTabChange(btnTarget.dataset.type);
             });
         });
     }
@@ -169,13 +170,14 @@ export function initStaticFilters(DOM, { onTabChange, onSearch, onCategoryChange
     if (DOM.catBtns) {
         DOM.catBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
+                const btnTarget = e.currentTarget;
                 DOM.catBtns.forEach(b => {
-                    b.classList.remove('active', 'bg-white', 'text-black');
-                    b.classList.add('text-white/50');
+                    b.classList.remove('active', 'border-white/10', 'bg-white/5', 'backdrop-blur-md', 'text-white', 'shadow-[0_0_15px_rgba(255,255,255,0.05)]');
+                    b.classList.add('border-transparent', 'bg-transparent', 'text-white/50');
                 });
-                e.target.classList.remove('text-white/50');
-                e.target.classList.add('active', 'bg-white', 'text-black');
-                onCategoryChange(e.target.dataset.cat);
+                btnTarget.classList.remove('border-transparent', 'bg-transparent', 'text-white/50');
+                btnTarget.classList.add('active', 'border-white/10', 'bg-white/5', 'backdrop-blur-md', 'text-white', 'shadow-[0_0_15px_rgba(255,255,255,0.05)]');
+                onCategoryChange(btnTarget.dataset.cat);
             });
         });
     }
@@ -184,17 +186,32 @@ export function initStaticFilters(DOM, { onTabChange, onSearch, onCategoryChange
         DOM.strengthBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const btnTarget = e.currentTarget;
-                if (btnTarget.classList.contains('active')) {
-                    btnTarget.classList.remove('active', 'bg-white/10', 'text-white', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]');
-                    btnTarget.classList.add('text-white/50');
+                const activeBtns = Array.from(DOM.strengthBtns).filter(b => b.classList.contains('active'));
+                let currentMaxStr = 0;
+                if (activeBtns.length > 0) {
+                    currentMaxStr = Math.max(...activeBtns.map(b => parseInt(b.dataset.strength, 10)));
+                }
+                const targetStrength = parseInt(btnTarget.dataset.strength, 10);
+
+                if (targetStrength === currentMaxStr) {
+                    // Deselect all
+                    DOM.strengthBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-white/10', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]', 'opacity-100', 'grayscale-0');
+                        b.classList.add('opacity-30', 'grayscale');
+                    });
                     onStrengthChange(null);
                 } else {
+                    // Select up to target
                     DOM.strengthBtns.forEach(b => {
-                        b.classList.remove('active', 'bg-white/10', 'text-white', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]');
-                        b.classList.add('text-white/50');
+                        const bStr = parseInt(b.dataset.strength, 10);
+                        if (bStr <= targetStrength) {
+                            b.classList.remove('opacity-30', 'grayscale');
+                            b.classList.add('active', 'bg-white/10', 'opacity-100', 'grayscale-0', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]');
+                        } else {
+                            b.classList.remove('active', 'bg-white/10', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]', 'opacity-100', 'grayscale-0');
+                            b.classList.add('opacity-30', 'grayscale');
+                        }
                     });
-                    btnTarget.classList.remove('text-white/50');
-                    btnTarget.classList.add('active', 'bg-white/10', 'text-white', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]');
                     onStrengthChange(btnTarget.dataset.strength);
                 }
             });
