@@ -1,4 +1,4 @@
-export function initMixBuilderUI(DOM, { WHATSAPP_NUMBER }) {
+export function initMixBuilderUI(DOM, { onAddToCart }) {
     let selectedIngredients = []; // Array of { tag: string, value: number }
     const MAX_INGREDIENTS = 3;
 
@@ -156,11 +156,34 @@ export function initMixBuilderUI(DOM, { WHATSAPP_NUMBER }) {
                 .map(i => `${i.tag} - ${i.value}%`)
                 .join(', ');
 
-            const text = `Привет! Я с сайта S.KAYFOM STORE. Хочу заказать кастомный микс. Мои предпочтения:\n${proportionsText}\nПодберите, пожалуйста, баночки для этого микса.`;
+            const customMixItem = {
+                brand: "Кастомный микс",
+                flavor: "Состав: " + proportionsText,
+                type: document.querySelector('.tab-btn[data-type="Аренда"]')?.classList.contains('active') ? 'Аренда' : 'Магазин',
+                category: "Табаки",
+                product_category: "Табаки",
+                price: 0,
+                price_sale: 0,
+                price_rent: 0,
+                media_url: "",
+                description: "Цена будет рассчитана менеджером после уточнения деталей."
+            };
+
+            if (onAddToCart) {
+                onAddToCart(customMixItem);
+            }
+
+            // Close the panel and reset
+            if (mixBuilderPanel) {
+                mixBuilderPanel.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+            }
             
-            const number = typeof WHATSAPP_NUMBER === 'function' ? WHATSAPP_NUMBER() : WHATSAPP_NUMBER;
-            const waLink = `https://wa.me/${number.replace(/\\D/g, '')}?text=${encodeURIComponent(text)}`;
-            window.open(waLink, '_blank');
+            selectedIngredients = [];
+            ingredientBtns.forEach(b => {
+                b.classList.remove('active', 'bg-white', 'text-black');
+                b.classList.add('bg-black/40', 'text-white');
+            });
+            updateSlidersUI();
         });
     }
 

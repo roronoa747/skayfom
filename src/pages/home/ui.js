@@ -276,7 +276,7 @@ function initLocalEventListeners() {
     });
 
     initMixBuilderUI(DOM, {
-        WHATSAPP_NUMBER: () => currentCityConfig?.whatsapp || '+77066458965'
+        onAddToCart: handleAddToCart
     });
 
     // Modal Actions
