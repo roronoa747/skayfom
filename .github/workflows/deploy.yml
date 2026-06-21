@@ -31,6 +31,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build
+        env:
+          VITE_CITIES_CSV_URL: "https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv&gid=323683406"
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4
