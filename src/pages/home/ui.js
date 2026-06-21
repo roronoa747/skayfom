@@ -128,15 +128,56 @@ export function initHome() {
     loadCitiesData(CITIES_CSV_URL).then(cities => {
         citiesData = cities;
 
+        // Dynamically render city buttons from config
+        const cityButtonsContainer = document.getElementById('city-buttons-container');
+        if (cityButtonsContainer) {
+            cityButtonsContainer.innerHTML = '';
+            citiesData.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = "city-select-btn w-full py-4 px-5 rounded-xl font-bold tracking-widest uppercase font-display bg-white/5 hover:bg-white/15 border border-white/10 transition-all text-sm text-left flex justify-between items-center group shadow-[0_0_15px_rgba(255,255,255,0.02)]";
+                btn.dataset.city = c.city;
+                btn.innerHTML = `
+                    ${c.city.toUpperCase()}
+                    <svg class="w-5 h-5 text-white/30 group-hover:text-white transition-colors transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                `;
+                cityButtonsContainer.appendChild(btn);
+            });
+            // Re-bind click events for dynamic buttons
+            const newCityButtons = document.querySelectorAll('.city-select-btn');
+            newCityButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const btnEl = e.target.closest('.city-select-btn');
+                    const city = btnEl.dataset.city;
+                    DOM.cityModal?.classList.add('opacity-0', 'pointer-events-none');
+                    DOM.cityModalContent?.classList.remove('scale-100');
+                    DOM.cityModalContent?.classList.add('scale-95');
+                    setTimeout(() => DOM.cityModal?.classList.add('hidden'), 500);
+                    applyCity(city, true);
+                });
+            });
+        }
+
         if (!currentCity) {
             // Apply default city in the background but don't save to localStorage yet
             applyCity(citiesData[0].city, false);
+            
+            const notificationTitle = document.getElementById('city-notification-title');
+            if (notificationTitle) {
+                notificationTitle.textContent = `ВАШ ГОРОД ${citiesData[0].city.toUpperCase()}?`;
+            }
+
             // Show notification after a short delay for animation
             setTimeout(() => {
                 DOM.cityNotification?.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
             }, 1000);
         } else {
-            applyCity(currentCity, true);
+            // Re-verify the currentCity still exists in config
+            const isValidCity = citiesData.some(c => c.city === currentCity);
+            if (isValidCity) {
+                applyCity(currentCity, true);
+            } else {
+                applyCity(citiesData[0].city, false);
+            }
         }
     }).catch(err => {
         console.error("Failed to load cities", err);
@@ -178,7 +219,7 @@ function applyCity(cityName, save = true) {
 
 function updateMap() {
     if (!currentCityConfig) return;
-    const { map_lat, map_lng, map_address, whatsapp } = currentCityConfig;
+    const { map_lat, map_lng, map_address, whatsapp, twogis_url } = currentCityConfig;
     
     // Update footer map
     const mapIframes = document.querySelectorAll('iframe[src*="yandex.ru/map-widget"]');
@@ -187,16 +228,35 @@ function updateMap() {
     });
 
     // Update footer address
-    const footerAddress = document.querySelector('p.text-xs.text-white\\/60.mb-3');
+    const footerAddress = document.getElementById('footer-address');
     if (footerAddress) {
         footerAddress.textContent = map_address;
     }
 
+    // Update cart pickup block
+    const pickupAddress = document.getElementById('pickup-address');
+    if (pickupAddress) pickupAddress.textContent = map_address;
+    
+    const pickupWhatsapp = document.getElementById('pickup-whatsapp');
+    if (pickupWhatsapp && whatsapp) pickupWhatsapp.textContent = whatsapp;
+
     // Update B2B WhatsApp link
     const b2bLink = document.querySelector('#b2b-modal-content a[href*="wa.me"]');
     if (b2bLink && whatsapp) {
-        b2bLink.href = `https://wa.me/${whatsapp.replace(/\\D/g, '')}`;
+        b2bLink.href = `https://wa.me/${whatsapp.replace(/\D/g, '')}`;
     }
+
+    // Update 2GIS links
+    const twogisLinks = document.querySelectorAll('a[href*="go.2gis.com"]');
+    twogisLinks.forEach(link => {
+        if (twogis_url) {
+            link.href = twogis_url;
+            link.style.display = '';
+        } else {
+            // Optional: Hide if there's no 2GIS link for the city
+            // link.style.display = 'none';
+        }
+    });
 }
 
 function initLocalEventListeners() {

@@ -42,8 +42,8 @@ function initYandexSuggest() {
         
         autocompleteTimeout = setTimeout(async () => {
             try {
-                const cityName = currentCityConfig.city;
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}, ${encodeURIComponent(query)}&addressdetails=1&limit=5&accept-language=ru`);
+                const actualCityName = currentCityConfig.city.replace(/\s*\(.*?\)\s*/g, '').trim();
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(actualCityName)}, ${encodeURIComponent(query)}&addressdetails=1&limit=5&accept-language=ru`);
                 const data = await res.json();
                 
                 if (data && data.length > 0) {
@@ -52,7 +52,7 @@ function initYandexSuggest() {
                     const seen = new Set();
                     data.forEach(item => {
                         const rawDl = item.display_name.toLowerCase();
-                        const cityNameLower = currentCityConfig.city.toLowerCase();
+                        const cityNameLower = actualCityName.toLowerCase();
                         if (!rawDl.includes(cityNameLower) && !(cityNameLower === 'астана' && (rawDl.includes('astana') || rawDl.includes('нур-султан')))) return;
                         
                         let street = item.address.road || item.address.residential || '';
@@ -119,14 +119,15 @@ async function fallbackLocationDetection(lat, lon) {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ru`);
         const data = await response.json();
         const city = data.address.city || data.address.town || data.address.state || '';
-        const cityNameLower = currentCityConfig.city.toLowerCase();
+        const actualCityName = currentCityConfig.city.replace(/\s*\(.*?\)\s*/g, '').trim();
+        const cityNameLower = actualCityName.toLowerCase();
         
         if (city.toLowerCase().includes(cityNameLower) || (cityNameLower === 'астана' && (city.toLowerCase().includes('astana') || city.toLowerCase().includes('нур-султан')))) {
             const road = data.address.road || '';
             const house = data.address.house_number || '';
-            if (DOM.deliveryAddress) DOM.deliveryAddress.value = `${currentCityConfig.city}, ${road} ${house}`.trim();
+            if (DOM.deliveryAddress) DOM.deliveryAddress.value = `${actualCityName}, ${road} ${house}`.trim();
         } else {
-            showLocationError(`Доставка работает только по городу ${currentCityConfig.city}.`);
+            showLocationError(`Доставка работает только по городу ${actualCityName}.`);
         }
     } catch(e) {
         showLocationError('Не удалось определить адрес.');

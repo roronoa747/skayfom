@@ -65,7 +65,7 @@
                 <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             </div>
             <div class="flex-1">
-                <h3 class="text-sm font-bold font-display mb-1 text-white">ВАШ ГОРОД АСТАНА?</h3>
+                <h3 id="city-notification-title" class="text-sm font-bold font-display mb-1 text-white">ВАШ ГОРОД АСТАНА?</h3>
                 <p class="text-[10px] text-white/50 mb-3 font-alt leading-tight">Мы используем геолокацию, чтобы показывать актуальные остатки и способы доставки.</p>
                 <div class="flex gap-2">
                     <button id="btn-city-yes" class="flex-1 py-2 px-3 bg-white text-black rounded-lg text-[10px] font-bold uppercase font-display hover:bg-gray-200 transition-colors">ДА, ВЕРНО</button>
@@ -340,8 +340,8 @@
                         <div class="absolute inset-0 pointer-events-none border border-white/10 rounded-xl"></div>
                         <div class="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-md border border-white/10 p-4 rounded-xl z-20">
                             <p class="text-sm font-bold mb-1">S.KAYFOM STORE</p>
-                            <p class="text-xs text-white/60 mb-3">Проспект Туран, 55/11, Астана</p>
-                            <a href="https://go.2gis.com/M2Y29" target="_blank" class="block w-full text-center bg-[#A4D233] text-black font-bold py-2 rounded text-xs hover:bg-[#8CB52A] transition-colors">Маршрут в 2GIS</a>
+                            <p id="footer-address" class="text-xs text-white/60 mb-3">Проспект Туран, 55/11, Астана</p>
+                            <a id="footer-2gis-btn" href="https://go.2gis.com/M2Y29" target="_blank" class="block w-full text-center bg-[#A4D233] text-black font-bold py-2 rounded text-xs hover:bg-[#8CB52A] transition-colors">Маршрут в 2GIS</a>
                         </div>
                     </div>
                 </div>
@@ -426,7 +426,7 @@
             <div id="delivery-block" class="mb-6">
                 <label class="block text-sm font-medium text-white/70 mb-2">Адрес доставки</label>
                 <div class="relative mb-3">
-                    <input type="text" id="delivery-address" placeholder="Улица, Дом (только Астана)"
+                    <input type="text" id="delivery-address" placeholder="Улица, Дом"
                         class="w-full bg-black border border-white/10 rounded-xl py-3 pl-4 pr-12 text-white placeholder-white/30 focus:outline-none focus:border-white/40 transition-colors">
                     <button id="btn-detect-location" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-sky-400 transition-colors" title="Определить мой адрес">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -443,7 +443,8 @@
             <!-- Pickup Form -->
             <div id="pickup-block" class="mb-6 hidden">
                 <div class="bg-black border border-white/10 rounded-xl p-4 mb-4">
-                    <p class="text-sm text-white/80 mb-2"><strong>Контакты:</strong> +7 706 645 8965</p>
+                    <p class="text-sm text-white/80 mb-2"><strong>Контакты:</strong> <span id="pickup-whatsapp">+7 706 645 8965</span></p>
+                    <p class="text-sm text-white/80 mb-2"><strong>Адрес:</strong> <span id="pickup-address">Проспект Туран, 55/11, Астана</span></p>
                     <p class="text-sm text-white/80"><strong>Режим работы:</strong> Пн — Вс 13:00–02:00</p>
                 </div>
                 <!-- Map Container -->
