@@ -13,6 +13,29 @@ export function initMixBuilderUI(DOM, { onAddToCart }) {
     // We get buttons inside ingredientsContainer directly because DOM.ingredientBtns might be stale
     const ingredientBtns = ingredientsContainer ? ingredientsContainer.querySelectorAll('.ingredient-btn') : [];
 
+    // Responsive mix builder movement
+    const mixContainer = document.getElementById('mix-builder-dropdown-container');
+    const desktopWrap = document.getElementById('desktop-mix-container');
+    const mobileWrap = document.getElementById('mobile-mix-container');
+
+    function moveMixBuilder() {
+        if (!mixContainer || !desktopWrap || !mobileWrap) return;
+        if (window.innerWidth < 768) {
+            if (mixContainer.parentNode !== mobileWrap) {
+                mobileWrap.appendChild(mixContainer);
+            }
+        } else {
+            if (mixContainer.parentNode !== desktopWrap) {
+                desktopWrap.appendChild(mixContainer);
+            }
+        }
+    }
+
+    if (mixContainer && desktopWrap && mobileWrap) {
+        moveMixBuilder();
+        window.addEventListener('resize', moveMixBuilder);
+    }
+
     function updateSlidersUI() {
         if (selectedIngredients.length === 0) {
             proportionsContainer.classList.add('hidden');
