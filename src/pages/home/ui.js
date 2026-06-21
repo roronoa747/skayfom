@@ -13,7 +13,7 @@ import { initCheckout } from '../../features/checkout/index.js';
 import { initToast, showToast as showToastShared } from '../../shared/ui/toast/index.js';
 
 const FALLBACK_CSV = 'catalog_template.csv';
-const CITIES_CSV_URL = 'cities_template.csv';
+const CITIES_CSV_URL = import.meta.env.VITE_CITIES_CSV_URL || 'cities_template.csv';
 
 export let catalogData = [];
 export let rawCatalogData = [];
