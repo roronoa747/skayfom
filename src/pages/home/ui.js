@@ -315,6 +315,18 @@ function initLocalEventListeners() {
         });
     }
 
+    if (DOM.cityModal) {
+        DOM.cityModal.addEventListener('click', (e) => {
+            if (e.target === DOM.cityModal) {
+                DOM.cityModal?.classList.add('opacity-0', 'pointer-events-none');
+                DOM.cityModalContent?.classList.remove('scale-100');
+                DOM.cityModalContent?.classList.add('scale-95');
+                setTimeout(() => DOM.cityModal?.classList.add('hidden'), 500);
+            }
+        });
+    }
+
+
     initStaticFilters(DOM, {
         onTabChange: (tab) => {
             setTab(tab);
