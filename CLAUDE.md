@@ -193,3 +193,7 @@ IMPORTANT: This project has a graphify-ts knowledge graph. You MUST follow these
 2. **Do NOT use Glob, Grep, Bash, Read, or dispatch Agent/Explore subagents first** for codebase questions.
 3. **Only fall back to raw file tools** if the graph tools cannot answer the question or the MCP server is unavailable. In that case, read graphify-out/GRAPH_REPORT.md first.
 4. **Do NOT dispatch Explore or research agents** for codebase questions — the knowledge graph already has the structural context they would spend tokens discovering.
+
+## Environment Variables & Deployment
+
+IMPORTANT: When adding new public `VITE_` environment variables to `.env` (like `VITE_CITIES_CSV_URL`), they MUST also be added to the GitHub Actions workflow file (`.github/workflows/deploy.yml`) under the `env:` block of the Build step. This ensures the variables are available during GitHub Pages deployment, since `.env` is ignored by git.
