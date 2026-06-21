@@ -3,7 +3,7 @@ import { triggerSmoke } from '../../shared/ui/loader.js';
 import { closeOrderModal } from '../../widgets/cartDrawer/index.js';
 
 let DOM = {};
-const WHATSAPP_NUMBER = '+77066458965';
+let currentCityConfig = { city: 'Астана', whatsapp: '+77066458965' };
 
 export function initCheckout(domElements) {
     DOM = domElements;
@@ -17,6 +17,11 @@ export function initCheckout(domElements) {
     }
     
     document.addEventListener('skayfom:init-yandex-suggest', initYandexSuggest);
+    document.addEventListener('skayfom:city-changed', (e) => {
+        if (e.detail && e.detail.city) {
+            currentCityConfig = e.detail.city;
+        }
+    });
 }
 
 let isYandexSuggestInitialized = false;
@@ -37,7 +42,8 @@ function initYandexSuggest() {
         
         autocompleteTimeout = setTimeout(async () => {
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=\u0410\u0441\u0442\u0430\u043d\u0430, ${encodeURIComponent(query)}&addressdetails=1&limit=5&accept-language=ru`);
+                const cityName = currentCityConfig.city;
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}, ${encodeURIComponent(query)}&addressdetails=1&limit=5&accept-language=ru`);
                 const data = await res.json();
                 
                 if (data && data.length > 0) {
@@ -46,7 +52,8 @@ function initYandexSuggest() {
                     const seen = new Set();
                     data.forEach(item => {
                         const rawDl = item.display_name.toLowerCase();
-                        if (!rawDl.includes('\u0430\u0441\u0442\u0430\u043d\u0430') && !rawDl.includes('astana') && !rawDl.includes('\u043d\u0443\u0440-\u0441\u0443\u043b\u0442\u0430\u043d')) return;
+                        const cityNameLower = currentCityConfig.city.toLowerCase();
+                        if (!rawDl.includes(cityNameLower) && !(cityNameLower === 'астана' && (rawDl.includes('astana') || rawDl.includes('нур-султан')))) return;
                         
                         let street = item.address.road || item.address.residential || '';
                         let house = item.address.house_number || '';
@@ -112,13 +119,14 @@ async function fallbackLocationDetection(lat, lon) {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ru`);
         const data = await response.json();
         const city = data.address.city || data.address.town || data.address.state || '';
+        const cityNameLower = currentCityConfig.city.toLowerCase();
         
-        if (city.toLowerCase().includes('астана') || city.toLowerCase().includes('astana') || city.toLowerCase().includes('нур-султан')) {
+        if (city.toLowerCase().includes(cityNameLower) || (cityNameLower === 'астана' && (city.toLowerCase().includes('astana') || city.toLowerCase().includes('нур-султан')))) {
             const road = data.address.road || '';
             const house = data.address.house_number || '';
-            if (DOM.deliveryAddress) DOM.deliveryAddress.value = `Астана, ${road} ${house}`.trim();
+            if (DOM.deliveryAddress) DOM.deliveryAddress.value = `${currentCityConfig.city}, ${road} ${house}`.trim();
         } else {
-            showLocationError('Доставка работает только по городу Астана.');
+            showLocationError(`Доставка работает только по городу ${currentCityConfig.city}.`);
         }
     } catch(e) {
         showLocationError('Не удалось определить адрес.');
@@ -192,7 +200,8 @@ function generateWhatsAppLink() {
         }
 
         const encodedText = encodeURIComponent(text);
-        const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodedText}`;
+        const waNumber = currentCityConfig.whatsapp || '+77066458965';
+        const waUrl = `https://wa.me/${waNumber.replace(/\D/g, '')}?text=${encodedText}`;
         window.open(waUrl, '_blank');
         
         closeOrderModal();

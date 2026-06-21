@@ -1,4 +1,4 @@
-import { loadCatalogData } from '../../shared/api/catalog.js';
+import { loadCatalogData, loadCitiesData } from '../../shared/api/catalog.js';
 import { addToCart, subscribeToCart } from '../../entities/cart/index.js';
 import { state as filterState, subscribeToFilters, setTab, setSearchQuery, setProductCategory, setStrength } from '../../features/filters/index.js';
 import { renderBrandFilters, renderVibeFilters, initStaticFilters } from '../../features/filters/index.js';
@@ -12,11 +12,15 @@ import { initCartDrawer, openCartDrawer, renderCartUI, closeOrderModal } from '.
 import { initCheckout } from '../../features/checkout/index.js';
 import { initToast, showToast as showToastShared } from '../../shared/ui/toast/index.js';
 
-const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EpBXaSdDobu1M5d2U2HNC7lflFHAD0bholw0uIsXoqU/export?format=csv';
 const FALLBACK_CSV = 'catalog_template.csv';
-const WHATSAPP_NUMBER = '+77066458965';
+const CITIES_CSV_URL = 'cities_template.csv';
 
 export let catalogData = [];
+export let rawCatalogData = [];
+export let citiesData = [];
+export let currentCity = localStorage.getItem('skayfom_city');
+export let currentCityConfig = null;
+
 const DOM = {};
 
 export function initDOM() {
@@ -69,7 +73,15 @@ export function initDOM() {
     
     // Location
     DOM.btnDetectLocation = document.getElementById('btn-detect-location');
-    DOM.locationError = document.getElementById('location-error');
+    // City Modal & Notification
+    DOM.cityModal = document.getElementById('city-modal');
+    DOM.cityModalContent = document.getElementById('city-modal-content');
+    DOM.cityButtons = document.querySelectorAll('.city-select-btn');
+    DOM.btnChangeCity = document.getElementById('btn-change-city');
+    DOM.cityNotification = document.getElementById('city-notification');
+    DOM.btnCityYes = document.getElementById('btn-city-yes');
+    DOM.btnCityOther = document.getElementById('btn-city-other');
+    DOM.btnCityModalClose = document.getElementById('btn-city-modal-close');
 }
 
 function handleAddToCart(item) {
@@ -112,10 +124,44 @@ export function initHome() {
         renderCatalogWidget(catalogData, filterState, DOM, handleAddToCart);
     });
 
-    // Load Data
-    loadCatalogData(GOOGLE_SHEET_CSV_URL + '&t=' + new Date().getTime(), FALLBACK_CSV)
-        .then(data => {
-            catalogData = data;
+    // Load Cities First
+    loadCitiesData(CITIES_CSV_URL).then(cities => {
+        citiesData = cities;
+
+        if (!currentCity) {
+            // Apply default city in the background but don't save to localStorage yet
+            applyCity(citiesData[0].city, false);
+            // Show notification after a short delay for animation
+            setTimeout(() => {
+                DOM.cityNotification?.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+            }, 1000);
+        } else {
+            applyCity(currentCity, true);
+        }
+    }).catch(err => {
+        console.error("Failed to load cities", err);
+        showErrorState();
+    });
+}
+
+function applyCity(cityName, save = true) {
+    currentCity = cityName;
+    if (save) {
+        localStorage.setItem('skayfom_city', cityName);
+    }
+    currentCityConfig = citiesData.find(c => c.city === cityName) || citiesData[0];
+    
+    if (DOM.btnChangeCity) {
+        DOM.btnChangeCity.textContent = cityName;
+    }
+
+    // Load catalog for this specific city
+    const catalogUrl = currentCityConfig.catalog_url || FALLBACK_CSV;
+    loadCatalogData(catalogUrl + (catalogUrl.includes('?') ? '&' : '?') + 't=' + new Date().getTime(), FALLBACK_CSV)
+        .then(catalog => {
+            rawCatalogData = catalog;
+            catalogData = rawCatalogData; // No need to filter by city column anymore!
+            
             renderBrandFilters(catalogData, 'brand-filters');
             renderVibeFilters(catalogData, 'vibe-filters');
             renderCatalogWidget(catalogData, filterState, DOM, handleAddToCart);
@@ -123,9 +169,92 @@ export function initHome() {
         .catch(err => {
             showErrorState();
         });
+
+    document.dispatchEvent(new CustomEvent('skayfom:city-changed', { detail: { city: currentCityConfig } }));
+
+    // Update map if needed
+    updateMap();
+}
+
+function updateMap() {
+    if (!currentCityConfig) return;
+    const { map_lat, map_lng, map_address, whatsapp } = currentCityConfig;
+    
+    // Update footer map
+    const mapIframes = document.querySelectorAll('iframe[src*="yandex.ru/map-widget"]');
+    mapIframes.forEach(iframe => {
+        iframe.src = `https://yandex.ru/map-widget/v1/?ll=${map_lng},${map_lat}&z=17&pt=${map_lng},${map_lat},pm2rdm`;
+    });
+
+    // Update footer address
+    const footerAddress = document.querySelector('p.text-xs.text-white\\/60.mb-3');
+    if (footerAddress) {
+        footerAddress.textContent = map_address;
+    }
+
+    // Update B2B WhatsApp link
+    const b2bLink = document.querySelector('#b2b-modal-content a[href*="wa.me"]');
+    if (b2bLink && whatsapp) {
+        b2bLink.href = `https://wa.me/${whatsapp.replace(/\\D/g, '')}`;
+    }
 }
 
 function initLocalEventListeners() {
+    // City selection logic
+    if (DOM.btnCityYes) {
+        DOM.btnCityYes.addEventListener('click', () => {
+            DOM.cityNotification?.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+            applyCity(currentCity || citiesData[0].city, true);
+        });
+    }
+
+    if (DOM.btnCityOther) {
+        DOM.btnCityOther.addEventListener('click', () => {
+            DOM.cityNotification?.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+            DOM.btnCityModalClose?.classList.remove('hidden');
+            DOM.cityModal?.classList.remove('hidden');
+            setTimeout(() => {
+                DOM.cityModal?.classList.remove('opacity-0', 'pointer-events-none');
+                DOM.cityModalContent?.classList.remove('scale-95');
+                DOM.cityModalContent?.classList.add('scale-100');
+            }, 10);
+        });
+    }
+
+    if (DOM.cityButtons) {
+        DOM.cityButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const city = e.target.dataset.city;
+                DOM.cityModal?.classList.add('opacity-0', 'pointer-events-none');
+                DOM.cityModalContent?.classList.remove('scale-100');
+                DOM.cityModalContent?.classList.add('scale-95');
+                setTimeout(() => DOM.cityModal?.classList.add('hidden'), 500);
+                applyCity(city, true);
+            });
+        });
+    }
+
+    if (DOM.btnChangeCity) {
+        DOM.btnChangeCity.addEventListener('click', () => {
+            DOM.btnCityModalClose?.classList.remove('hidden');
+            DOM.cityModal?.classList.remove('hidden');
+            setTimeout(() => {
+                DOM.cityModal?.classList.remove('opacity-0', 'pointer-events-none');
+                DOM.cityModalContent?.classList.remove('scale-95');
+                DOM.cityModalContent?.classList.add('scale-100');
+            }, 10);
+        });
+    }
+
+    if (DOM.btnCityModalClose) {
+        DOM.btnCityModalClose.addEventListener('click', () => {
+            DOM.cityModal?.classList.add('opacity-0', 'pointer-events-none');
+            DOM.cityModalContent?.classList.remove('scale-100');
+            DOM.cityModalContent?.classList.add('scale-95');
+            setTimeout(() => DOM.cityModal?.classList.add('hidden'), 500);
+        });
+    }
+
     initStaticFilters(DOM, {
         onTabChange: (tab) => {
             setTab(tab);
@@ -147,7 +276,7 @@ function initLocalEventListeners() {
     });
 
     initMixBuilderUI(DOM, {
-        WHATSAPP_NUMBER,
+        WHATSAPP_NUMBER: () => currentCityConfig?.whatsapp || '+77066458965',
         onIngredientToggle: () => {
             renderCatalogWidget(catalogData, filterState, DOM, handleAddToCart);
         }

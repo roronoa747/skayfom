@@ -58,6 +58,53 @@
         <div class="hidden md:block absolute top-[20%] right-[-5%] w-[450px] h-[450px] bg-orange-500/30 rounded-full blur-[120px] mix-blend-screen pointer-events-none animate-smoke-left"></div>
     </div>
 
+    <!-- CITY NOTIFICATION (Floating) -->
+    <div id="city-notification" class="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-[55] bg-[#0b0b0d]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-2xl w-[90%] md:w-auto max-w-sm transform translate-y-24 opacity-0 transition-all duration-700 pointer-events-none">
+        <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-sm font-bold font-display mb-1 text-white">ВАШ ГОРОД АСТАНА?</h3>
+                <p class="text-[10px] text-white/50 mb-3 font-alt leading-tight">Мы используем геолокацию, чтобы показывать актуальные остатки и способы доставки.</p>
+                <div class="flex gap-2">
+                    <button id="btn-city-yes" class="flex-1 py-2 px-3 bg-white text-black rounded-lg text-[10px] font-bold uppercase font-display hover:bg-gray-200 transition-colors">ДА, ВЕРНО</button>
+                    <button id="btn-city-other" class="flex-1 py-2 px-3 bg-white/5 border border-white/10 text-white rounded-lg text-[10px] font-bold uppercase font-display hover:bg-white/10 transition-colors">ВЫБРАТЬ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CITY SELECTION MODAL -->
+    <div id="city-modal" class="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-500 hidden opacity-0 pointer-events-none p-4">
+        <div class="relative bg-[#070708]/80 backdrop-blur-2xl border border-white/10 shadow-[0_0_30px_rgba(138,43,226,0.15),0_0_15px_rgba(234,88,12,0.1)] rounded-[2rem] p-6 sm:p-8 w-full max-w-sm transform scale-95 transition-transform duration-500" id="city-modal-content">
+            
+            <!-- Noise Texture Overlay -->
+            <div class="absolute inset-0 bg-noise z-[-1] mix-blend-overlay opacity-20 pointer-events-none rounded-[2rem]"></div>
+
+            <div class="flex justify-between items-start mb-6 relative z-10">
+                <div>
+                    <h2 class="text-xl font-display font-bold text-white tracking-widest neon-text-bloom">ГОРОД</h2>
+                    <p class="text-[10px] text-white/50 font-alt mt-1">Выберите ваш город</p>
+                </div>
+                <button id="btn-city-modal-close" class="text-white/50 hover:text-white transition-colors p-1 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 hidden">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="flex flex-col gap-3 w-full relative z-10" id="city-buttons-container">
+                <button class="city-select-btn w-full py-4 px-5 rounded-xl font-bold tracking-widest uppercase font-display bg-white/5 hover:bg-white/15 border border-white/10 transition-all text-sm text-left flex justify-between items-center group shadow-[0_0_15px_rgba(255,255,255,0.02)]" data-city="Астана">
+                    АСТАНА
+                    <svg class="w-5 h-5 text-white/30 group-hover:text-white transition-colors transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                <button class="city-select-btn w-full py-4 px-5 rounded-xl font-bold tracking-widest uppercase font-display bg-white/5 hover:bg-white/15 border border-white/10 transition-all text-sm text-left flex justify-between items-center group shadow-[0_0_15px_rgba(255,255,255,0.02)]" data-city="Тараз">
+                    ТАРАЗ
+                    <svg class="w-5 h-5 text-white/30 group-hover:text-white transition-colors transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- AGE GATE (18+) -->
     <div id="age-gate"
         class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-opacity duration-700">
@@ -104,17 +151,20 @@
             <!-- Top Row: Logo, Search, B2B -->
             <div class="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6 mb-4 md:mb-6">
 
-            <!-- Logo Area (Compact & Neon) -->
-            <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
-                <img src="/images/logo.png" alt="S.KAYFOM"
-                    class="w-12 h-12 md:w-16 md:h-16 object-contain mix-blend-screen relative z-10 drop-shadow-md"
-                    onerror="this.style.display='none'">
-                <!-- Text -->
-                <div class="flex flex-col justify-center">
-                    <span class="text-2xl md:text-3xl font-alt text-white font-bold leading-none text-glow-neon tracking-wide">S.KAYFOM</span>
-                    <span class="text-[8px] md:text-[10px] font-alt text-white tracking-[0.3em] text-right mt-0.5 opacity-80 pr-1 text-glow-neon">STORE</span>
+                <!-- Logo Area (Compact & Neon) -->
+                <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                    <img src="/images/logo.png" alt="S.KAYFOM"
+                        class="w-12 h-12 md:w-16 md:h-16 object-contain mix-blend-screen relative z-10 drop-shadow-md"
+                        onerror="this.style.display='none'">
+                    <!-- Text -->
+                    <div class="flex flex-col justify-center">
+                        <span class="text-2xl md:text-3xl font-alt text-white font-bold leading-none text-glow-neon tracking-wide">S.KAYFOM</span>
+                        <div class="flex justify-between items-center mt-0.5 pr-1">
+                            <span class="text-[8px] md:text-[10px] font-alt text-white tracking-[0.3em] opacity-80 text-glow-neon">STORE</span>
+                            <button id="btn-change-city" class="text-[8px] md:text-[10px] text-white/50 hover:text-white underline decoration-dashed decoration-white/30 underline-offset-2 transition-colors">Астана</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
                 <!-- Search Bar -->
                 <div class="relative w-full md:max-w-xs md:mx-auto">
