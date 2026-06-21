@@ -4,7 +4,10 @@ export default defineConfig({
   base: '/skayfom/', // Use absolute base path for GitHub Pages
   server: {
     port: 5173,
-    open: true
+    open: true,
+    watch: {
+      ignored: ['**/downloaded_catalog.csv']
+    }
   },
   build: {
     outDir: 'dist',

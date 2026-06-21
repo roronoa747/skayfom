@@ -2,7 +2,6 @@ export let state = {
     currentTab: 'Магазин', // Магазин | Аренда
     searchQuery: '',
     activeVibes: new Set(),
-    activeIngredients: new Set(),
     activeBrand: null,
     activeStrength: null,
     activeProductCategory: 'Табаки'
@@ -73,20 +72,3 @@ export function clearFilters() {
     notify();
 }
 
-export function toggleIngredient(ingredient) {
-    if (state.activeIngredients.has(ingredient)) {
-        state.activeIngredients.delete(ingredient);
-    } else {
-        if (state.activeIngredients.size >= 3) {
-            return false; // Reached max
-        }
-        state.activeIngredients.add(ingredient);
-    }
-    notify();
-    return true;
-}
-
-export function clearIngredients() {
-    state.activeIngredients.clear();
-    notify();
-}

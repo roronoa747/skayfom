@@ -47,45 +47,21 @@ export function renderCatalog(catalogData, filterState, DOM, handleAddToCart) {
             if (String(item.strength) !== filterState.activeStrength) return false;
         }
         
-        // Filter by Ingredients (Mix Builder)
-        if (filterState.activeIngredients.size > 0) {
-             const itemVibes = (item.vibes || '').toLowerCase().split(',').map(v => v.trim());
-             const itemDesc = (item.description || '').toLowerCase();
-             const itemFlavor = (item.flavor || '').toLowerCase();
-
-             const hasIngredient = Array.from(filterState.activeIngredients).every(ing => {
-                 if (ing === 'напитки') {
-                     return itemVibes.includes('чай') || 
-                            itemDesc.includes('напит') || itemFlavor.includes('напит') ||
-                            itemDesc.includes('кола') || itemFlavor.includes('кола') ||
-                            itemDesc.includes('лимонад') || itemFlavor.includes('лимонад') ||
-                            itemDesc.includes('сок') || itemFlavor.includes('сок') ||
-                            itemDesc.includes('кофе') || itemFlavor.includes('кофе');
-                 }
-                 return itemVibes.includes(ing);
-             });
-             if (!hasIngredient) return false;
-        }
+        // Removed Filter by Ingredients (Mix Builder)
 
         return true;
     });
 
     // HIGHLIGHTS LOGIC
     let isHighlightsMode = false;
-    if (filterState.currentTab === 'Магазин' && !filterState.activeBrand && filterState.activeVibes.size === 0 && !filterState.activeStrength && !filterState.searchQuery && filterState.activeIngredients.size === 0) {
+    if (filterState.currentTab === 'Магазин' && !filterState.activeBrand && filterState.activeVibes.size === 0 && !filterState.activeStrength && !filterState.searchQuery) {
         isHighlightsMode = true;
         // Limit to 12 random highlights for display on desktop, and 6 on mobile (to keep 3 rows in 2 columns)
         const limit = window.innerWidth < 768 ? 6 : 12;
         filteredData = [...filteredData].sort(() => 0.5 - Math.random()).slice(0, limit);
     }
 
-    if (DOM.customMixPrompt) {
-        if (filterState.activeIngredients.size > 0 && filteredData.length === 0) {
-            DOM.customMixPrompt.classList.remove('hidden');
-        } else {
-            DOM.customMixPrompt.classList.add('hidden');
-        }
-    }
+    // Custom Mix prompt is handled directly in Mix Builder widget now
 
     if (filteredData.length === 0) {
         DOM.catalogGrid.innerHTML = '<div class="col-span-full py-20 text-center text-white/50">Ничего не найдено. Попробуйте изменить фильтры.</div>';
