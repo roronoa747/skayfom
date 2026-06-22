@@ -33,7 +33,7 @@ export function initInstagramFeed() {
     let html = '';
     selected.forEach(src => {
         html += `
-            <a href="https://instagram.com/s.kayfom" target="_blank" class="block aspect-square relative group overflow-hidden rounded-xl bg-neutral-900 border border-white/5">
+            <a href="https://www.instagram.com/s.kayfom_store/" target="_blank" class="block aspect-square relative group overflow-hidden rounded-xl bg-neutral-900 border border-white/5">
                 <img src="${src}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Instagram Post">
                 <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white">
                     ${iconSvg}
